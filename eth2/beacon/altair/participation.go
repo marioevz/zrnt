@@ -4,7 +4,11 @@ import (
 	"bytes"
 	"context"
 	"encoding/binary"
+	"encoding/hex"
 	"encoding/json"
+	"fmt"
+	"strings"
+
 	"github.com/protolambda/zrnt/eth2/beacon/common"
 	"github.com/protolambda/ztyp/codec"
 	"github.com/protolambda/ztyp/tree"
@@ -84,6 +88,22 @@ func (r ParticipationRegistry) String() string {
 }
 
 func (r *ParticipationRegistry) UnmarshalJSON(data []byte) error {
+	// Nimbus returns an hex string, this is a temporary workaround
+	var str string
+	fmt.Printf("DEBUG: %s\n", data)
+	if err := json.Unmarshal(data, &str); err != nil {
+		r := make([]ParticipationFlags, 0)
+		if strings.HasPrefix(str, "0x") {
+			str = strings.TrimPrefix(str, "0x")
+			if bA, err := hex.DecodeString(str); err != nil {
+				for _, b := range bA {
+					r = append(r, ParticipationFlags(b))
+				}
+				return nil
+			}
+		}
+		return fmt.Errorf("Invalid participation registry as string: %s", data)
+	}
 	return json.Unmarshal(data, (*[]ParticipationFlags)(r))
 }
 
