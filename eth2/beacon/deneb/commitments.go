@@ -50,6 +50,44 @@ func KZGCommitmentsType(spec *common.Spec) *view.ComplexListTypeDef {
 	return view.ComplexListType(common.KZGCommitmentType, uint64(spec.MAX_BLOBS_PER_BLOCK))
 }
 
+type KZGProofs []common.KZGProof
+
+func (li *KZGProofs) Deserialize(spec *common.Spec, dr *codec.DecodingReader) error {
+	return dr.List(func() codec.Deserializable {
+		i := len(*li)
+		*li = append(*li, common.KZGProof{})
+		return &((*li)[i])
+	}, common.KZGProofSize, uint64(spec.MAX_BLOBS_PER_BLOCK))
+}
+
+func (li KZGProofs) Serialize(_ *common.Spec, w *codec.EncodingWriter) error {
+	return w.List(func(i uint64) codec.Serializable {
+		return &li[i]
+	}, common.KZGProofSize, uint64(len(li)))
+}
+
+func (li KZGProofs) ByteLength(_ *common.Spec) (out uint64) {
+	return common.KZGProofSize * uint64(len(li))
+}
+
+func (*KZGProofs) FixedLength(*common.Spec) uint64 {
+	return 0
+}
+
+func (li KZGProofs) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) common.Root {
+	length := uint64(len(li))
+	return hFn.ComplexListHTR(func(i uint64) tree.HTR {
+		if i < length {
+			return &li[i]
+		}
+		return nil
+	}, length, uint64(spec.MAX_BLOBS_PER_BLOCK))
+}
+
+func KZGProofsType(spec *common.Spec) *view.ComplexListTypeDef {
+	return view.ComplexListType(common.KZGProofType, uint64(spec.MAX_BLOBS_PER_BLOCK))
+}
+
 type TransactionsAndBlobCommitments interface {
 	GetTransactions() []common.Transaction
 	GetBlobKZGCommitments() []common.KZGCommitment
