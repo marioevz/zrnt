@@ -129,7 +129,7 @@ type BeaconBlockBody struct {
 
 	BLSToExecutionChanges common.SignedBLSToExecutionChanges `json:"bls_to_execution_changes" yaml:"bls_to_execution_changes"`
 
-	BlobKZGCommitments KZGCommitments `json:"blob_kzg_commitments" yaml:"blob_kzg_commitments"` // new in EIP-4844
+	BlobKZGCommitments common.KZGCommitments `json:"blob_kzg_commitments" yaml:"blob_kzg_commitments"` // new in EIP-4844
 }
 
 func (b *BeaconBlockBody) Deserialize(spec *common.Spec, dr *codec.DecodingReader) error {
@@ -254,7 +254,7 @@ func BeaconBlockBodyType(spec *common.Spec) *ContainerTypeDef {
 		{"execution_payload", ExecutionPayloadType(spec)},
 		{"bls_to_execution_changes", common.BlockSignedBLSToExecutionChangesType(spec)},
 		// Deneb
-		{"blob_kzg_commitments", KZGCommitmentsType(spec)},
+		{"blob_kzg_commitments", common.KZGCommitmentsType(spec)},
 	})
 }
 
@@ -275,7 +275,7 @@ type BeaconBlockBodyShallow struct {
 
 	BLSToExecutionChanges common.SignedBLSToExecutionChanges `json:"bls_to_execution_changes" yaml:"bls_to_execution_changes"`
 
-	BlobKZGCommitments KZGCommitments `json:"blob_kzg_commitments" yaml:"blob_kzg_commitments"` // new in EIP-4844
+	BlobKZGCommitments common.KZGCommitments `json:"blob_kzg_commitments" yaml:"blob_kzg_commitments"` // new in EIP-4844
 }
 
 func (b *BeaconBlockBodyShallow) Deserialize(spec *common.Spec, dr *codec.DecodingReader) error {

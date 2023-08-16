@@ -1,6 +1,7 @@
 package deneb
 
 import (
+	"bytes"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -8,7 +9,7 @@ import (
 	"github.com/protolambda/zrnt/eth2/beacon/common"
 	"github.com/protolambda/ztyp/codec"
 	"github.com/protolambda/ztyp/tree"
-	"github.com/protolambda/ztyp/view"
+	. "github.com/protolambda/ztyp/view"
 )
 
 const FIELD_ELEMENTS_PER_BLOB = 4096
@@ -17,7 +18,7 @@ const BlobSize = FIELD_ELEMENTS_PER_BLOB * BYTES_PER_FIELD_ELEMENT
 
 type Blob [BlobSize]byte
 
-var BlobType = view.BasicVectorType(view.ByteType, BlobSize)
+var BlobType = BasicVectorType(ByteType, BlobSize)
 
 func (p *Blob) Deserialize(dr *codec.DecodingReader) error {
 	if p == nil {
@@ -99,12 +100,46 @@ func (li Blobs) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) common.Root {
 	}, length, uint64(spec.MAX_BLOBS_PER_BLOCK))
 }
 
-func BlobsType(spec *common.Spec) *view.ComplexListTypeDef {
-	return view.ComplexListType(BlobType, uint64(spec.MAX_BLOBS_PER_BLOCK))
+func BlobsType(spec *common.Spec) *ComplexListTypeDef {
+	return ComplexListType(BlobType, uint64(spec.MAX_BLOBS_PER_BLOCK))
 }
 
-type BlobsBundle struct {
-	KZGCommitments KZGCommitments `json:"kzg_commitments" yaml:"kzg_commitments"`
-	KZGProofs      KZGProofs      `json:"kzg_proofs" yaml:"kzg_proofs"`
-	Blobs          Blobs          `json:"blobs" yaml:"blobs"`
+func (li Blobs) View(spec *common.Spec) (*BlobsView, error) {
+	typ := BlobsType(spec)
+	var buf bytes.Buffer
+	if err := li.Serialize(spec, codec.NewEncodingWriter(&buf)); err != nil {
+		return nil, err
+	}
+	data := buf.Bytes()
+	dec := codec.NewDecodingReader(bytes.NewReader(data), li.ByteLength(nil))
+	return AsBlobs(typ.Deserialize(dec))
+}
+
+func AsBlobs(v View, err error) (*BlobsView, error) {
+	c, err := AsComplexList(v, err)
+	return &BlobsView{c}, err
+}
+
+type BlobsView struct {
+	*ComplexListView
+}
+
+func (v *BlobsView) Raw(spec *common.Spec) (*Blobs, error) {
+	var buf bytes.Buffer
+	if err := v.Serialize(codec.NewEncodingWriter(&buf)); err != nil {
+		return nil, err
+	}
+	if buf.Len()%BlobSize != 0 {
+		return nil, fmt.Errorf("invalid length for blobs: %d", buf.Len())
+	}
+	commitmentCount := buf.Len() / BlobSize
+	if commitmentCount > int(spec.MAX_BLOBS_PER_BLOCK) {
+		return nil, fmt.Errorf("too many Blobs: %d", commitmentCount)
+	}
+	bufBytes := buf.Bytes()
+	out := make(Blobs, len(bufBytes)/BlobSize)
+	for c := 0; c < len(bufBytes)/BlobSize; c++ {
+		copy(out[c][:], bufBytes[c*BlobSize:(c+1)*BlobSize])
+	}
+	return &out, nil
 }
