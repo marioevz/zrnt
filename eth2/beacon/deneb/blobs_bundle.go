@@ -30,24 +30,32 @@ type BlobsBundle struct {
 	Blobs          Blobs                 `json:"blobs" yaml:"blobs"`
 }
 
-func (s *BlobsBundle) Deserialize(spec *common.Spec, dr *codec.DecodingReader) error {
-	return dr.Container(spec.Wrap(&s.KZGCommitments), spec.Wrap(&s.KZGProofs), spec.Wrap(&s.Blobs))
+func (bb *BlobsBundle) Deserialize(spec *common.Spec, dr *codec.DecodingReader) error {
+	return dr.Container(spec.Wrap(&bb.KZGCommitments), spec.Wrap(&bb.KZGProofs), spec.Wrap(&bb.Blobs))
 }
 
-func (s *BlobsBundle) Serialize(spec *common.Spec, w *codec.EncodingWriter) error {
-	return w.Container(spec.Wrap(&s.KZGCommitments), spec.Wrap(&s.KZGProofs), spec.Wrap(&s.Blobs))
+func (bb *BlobsBundle) Serialize(spec *common.Spec, w *codec.EncodingWriter) error {
+	return w.Container(spec.Wrap(&bb.KZGCommitments), spec.Wrap(&bb.KZGProofs), spec.Wrap(&bb.Blobs))
 }
 
-func (s *BlobsBundle) ByteLength(spec *common.Spec) uint64 {
-	return codec.ContainerLength(spec.Wrap(&s.KZGCommitments), spec.Wrap(&s.KZGProofs), spec.Wrap(&s.Blobs))
+func (bb *BlobsBundle) ByteLength(spec *common.Spec) uint64 {
+	return codec.ContainerLength(spec.Wrap(&bb.KZGCommitments), spec.Wrap(&bb.KZGProofs), spec.Wrap(&bb.Blobs))
 }
 
 func (a *BlobsBundle) FixedLength(*common.Spec) uint64 {
 	return 0
 }
 
-func (s *BlobsBundle) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) common.Root {
-	return hFn.HashTreeRoot(spec.Wrap(&s.KZGCommitments), spec.Wrap(&s.KZGProofs), spec.Wrap(&s.Blobs))
+func (bb *BlobsBundle) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) common.Root {
+	return hFn.HashTreeRoot(spec.Wrap(&bb.KZGCommitments), spec.Wrap(&bb.KZGProofs), spec.Wrap(&bb.Blobs))
+}
+
+func (bb *BlobsBundle) Blinded(spec *common.Spec, hFn tree.HashFn) *BlindedBlobsBundle {
+	return &BlindedBlobsBundle{
+		KZGCommitments: bb.KZGCommitments,
+		KZGProofs:      bb.KZGProofs,
+		BlobRoots:      bb.Blobs.Roots(spec, hFn),
+	}
 }
 
 func BlindedBlobsBundleType(spec *common.Spec) *ContainerTypeDef {

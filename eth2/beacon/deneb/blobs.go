@@ -152,6 +152,15 @@ func (li Blobs) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) common.Root {
 	}, length, uint64(spec.MAX_BLOBS_PER_BLOCK))
 }
 
+func (li Blobs) Roots(spec *common.Spec, hFn tree.HashFn) BlobRoots {
+	length := uint64(len(li))
+	roots := make(BlobRoots, length)
+	for i := uint64(0); i < length; i++ {
+		roots[i] = li[i].HashTreeRoot(spec, hFn)
+	}
+	return roots
+}
+
 func BlobsType(spec *common.Spec) *ComplexListTypeDef {
 	return ComplexListType(BlobType(spec), uint64(spec.MAX_BLOBS_PER_BLOCK))
 }
