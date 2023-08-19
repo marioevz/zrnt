@@ -58,6 +58,18 @@ func (bb *BlobsBundle) Blinded(spec *common.Spec, hFn tree.HashFn) *BlindedBlobs
 	}
 }
 
+func (bb *BlobsBundle) GetCommitments() *common.KZGCommitments {
+	return &bb.KZGCommitments
+}
+
+func (bb *BlobsBundle) GetProofs() *common.KZGProofs {
+	return &bb.KZGProofs
+}
+
+func (bb *BlobsBundle) GetBlobs() *Blobs {
+	return &bb.Blobs
+}
+
 func BlindedBlobsBundleType(spec *common.Spec) *ContainerTypeDef {
 	return ContainerType("BlindedBlobsBundle", []FieldDef{
 		{"commitments", common.KZGCommitmentsType(spec)},
