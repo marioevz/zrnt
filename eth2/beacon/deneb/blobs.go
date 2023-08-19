@@ -284,6 +284,31 @@ func (b *BlobSidecar) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) common.Ro
 	return hFn.HashTreeRoot(&b.BlockRoot, &b.Index, &b.Slot, &b.BlockParentRoot, &b.ProposerIndex, spec.Wrap(&b.Blob), &b.KZGCommitment, &b.KZGProof)
 }
 
+type SignedBlobSidecar struct {
+	Message   BlobSidecar         `json:"message" yaml:"message"`
+	Signature common.BLSSignature `json:"signature" yaml:"signature"`
+}
+
+func (b *SignedBlobSidecar) Deserialize(spec *common.Spec, dr *codec.DecodingReader) error {
+	return dr.Container(spec.Wrap(&b.Message), &b.Signature)
+}
+
+func (b *SignedBlobSidecar) Serialize(spec *common.Spec, w *codec.EncodingWriter) error {
+	return w.Container(spec.Wrap(&b.Message), &b.Signature)
+}
+
+func (b *SignedBlobSidecar) ByteLength(spec *common.Spec) uint64 {
+	return codec.ContainerLength(spec.Wrap(&b.Message), &b.Signature)
+}
+
+func (b *SignedBlobSidecar) FixedLength(spec *common.Spec) uint64 {
+	return codec.ContainerLength(spec.Wrap(&b.Message), &b.Signature)
+}
+
+func (b *SignedBlobSidecar) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) common.Root {
+	return hFn.HashTreeRoot(spec.Wrap(&b.Message), &b.Signature)
+}
+
 var BlindedBlobSidecarType = ContainerType("BlindedBlobSidecar", []FieldDef{
 	{"block_root", RootType},
 	{"index", Uint64Type},
@@ -326,6 +351,19 @@ func (b *BlindedBlobSidecar) HashTreeRoot(hFn tree.HashFn) common.Root {
 	return hFn.HashTreeRoot(&b.BlockRoot, &b.Index, &b.Slot, &b.BlockParentRoot, &b.ProposerIndex, &b.BlobRoot, &b.KZGCommitment, &b.KZGProof)
 }
 
+func (b *BlindedBlobSidecar) Unblind(blob *Blob) *BlobSidecar {
+	return &BlobSidecar{
+		BlockRoot:       b.BlockRoot,
+		Index:           b.Index,
+		Slot:            b.Slot,
+		BlockParentRoot: b.BlockParentRoot,
+		ProposerIndex:   b.ProposerIndex,
+		Blob:            *blob,
+		KZGCommitment:   b.KZGCommitment,
+		KZGProof:        b.KZGProof,
+	}
+}
+
 var SignedBlindedBlobSidecarType = ContainerType("SignedBlindedBlobSidecar", []FieldDef{
 	{"message", BlindedBlobSidecarType},
 	{"signature", common.BLSSignatureType},
@@ -354,4 +392,11 @@ func (b *SignedBlindedBlobSidecar) FixedLength() uint64 {
 
 func (b *SignedBlindedBlobSidecar) HashTreeRoot(hFn tree.HashFn) common.Root {
 	return hFn.HashTreeRoot(&b.Message, &b.Signature)
+}
+
+func (b *SignedBlindedBlobSidecar) Unblind(blob *Blob) *SignedBlobSidecar {
+	return &SignedBlobSidecar{
+		Message:   *b.Message.Unblind(blob),
+		Signature: b.Signature,
+	}
 }
