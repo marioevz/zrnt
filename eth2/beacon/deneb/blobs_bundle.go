@@ -25,8 +25,8 @@ func AsBlobsBundle(v View, err error) (*BlobsBundleView, error) {
 }
 
 type BlobsBundle struct {
-	KZGCommitments common.KZGCommitments `json:"kzg_commitments" yaml:"kzg_commitments"`
-	KZGProofs      common.KZGProofs      `json:"kzg_proofs" yaml:"kzg_proofs"`
+	KZGCommitments common.KZGCommitments `json:"commitments" yaml:"commitments"`
+	KZGProofs      common.KZGProofs      `json:"proofs" yaml:"proofs"`
 	Blobs          Blobs                 `json:"blobs" yaml:"blobs"`
 }
 
@@ -79,9 +79,9 @@ func BlindedBlobsBundleType(spec *common.Spec) *ContainerTypeDef {
 }
 
 type BlindedBlobsBundle struct {
-	KZGCommitments common.KZGCommitments
-	KZGProofs      common.KZGProofs
-	BlobRoots      BlobRoots
+	KZGCommitments common.KZGCommitments `json:"commitments" yaml:"commitments"`
+	KZGProofs      common.KZGProofs      `json:"proofs" yaml:"proofs"`
+	BlobRoots      BlobRoots             `json:"blob_roots" yaml:"blob_roots"`
 }
 
 func (b *BlindedBlobsBundle) Deserialize(spec *common.Spec, dr *codec.DecodingReader) error {
