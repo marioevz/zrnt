@@ -100,6 +100,18 @@ func (a *BlindedBlobsBundle) FixedLength(*common.Spec) uint64 {
 	return 0
 }
 
+func (bbb *BlindedBlobsBundle) GetCommitments() *common.KZGCommitments {
+	return &bbb.KZGCommitments
+}
+
+func (bbb *BlindedBlobsBundle) GetProofs() *common.KZGProofs {
+	return &bbb.KZGProofs
+}
+
+func (bbb *BlindedBlobsBundle) GetBlobRoots() *BlobRoots {
+	return &bbb.BlobRoots
+}
+
 func (b *BlindedBlobsBundle) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) common.Root {
 	return hFn.HashTreeRoot(spec.Wrap(&b.KZGCommitments), spec.Wrap(&b.KZGProofs), spec.Wrap(&b.BlobRoots))
 }
