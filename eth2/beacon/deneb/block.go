@@ -443,7 +443,10 @@ func (b *BlindedBeaconBlockBody) HashTreeRoot(spec *common.Spec, hFn tree.HashFn
 	)
 }
 
-func (b *BlindedBeaconBlockBody) Unblind(spec *common.Spec, payload ExecutionPayload) (*BeaconBlockBody, error) {
+func (b *BlindedBeaconBlockBody) Unblind(spec *common.Spec, payload *ExecutionPayload) (*BeaconBlockBody, error) {
+	if payload == nil {
+		return nil, fmt.Errorf("cannot unblind with nil payload")
+	}
 	payloadRoot := payload.HashTreeRoot(spec, tree.GetHashFn())
 
 	if b.ExecutionPayloadHeader.HashTreeRoot(tree.GetHashFn()) != payloadRoot {
@@ -459,7 +462,7 @@ func (b *BlindedBeaconBlockBody) Unblind(spec *common.Spec, payload ExecutionPay
 		Deposits:              b.Deposits,
 		VoluntaryExits:        b.VoluntaryExits,
 		SyncAggregate:         b.SyncAggregate,
-		ExecutionPayload:      payload,
+		ExecutionPayload:      *payload,
 		BLSToExecutionChanges: b.BLSToExecutionChanges,
 		BlobKZGCommitments:    b.BlobKZGCommitments,
 	}, nil
@@ -491,6 +494,20 @@ func (a *BlindedBeaconBlock) FixedLength(*common.Spec) uint64 {
 
 func (b *BlindedBeaconBlock) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) common.Root {
 	return hFn.HashTreeRoot(b.Slot, b.ProposerIndex, b.ParentRoot, b.StateRoot, spec.Wrap(&b.Body))
+}
+
+func (b *BlindedBeaconBlock) Unblind(spec *common.Spec, payload *ExecutionPayload) (*BeaconBlock, error) {
+	unblindedBody, err := b.Body.Unblind(spec, payload)
+	if err != nil {
+		return nil, err
+	}
+	return &BeaconBlock{
+		Slot:          b.Slot,
+		ProposerIndex: b.ProposerIndex,
+		ParentRoot:    b.ParentRoot,
+		StateRoot:     b.StateRoot,
+		Body:          *unblindedBody,
+	}, nil
 }
 
 func BlindedBeaconBlockType(spec *common.Spec) *ContainerTypeDef {
