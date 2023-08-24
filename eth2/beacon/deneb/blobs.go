@@ -83,11 +83,11 @@ func (p *Blob) Serialize(spec *common.Spec, w *codec.EncodingWriter) error {
 }
 
 func (Blob) ByteLength(spec *common.Spec) uint64 {
-	return spec.FIELD_ELEMENTS_PER_BLOB.ByteLength()
+	return BlobSize(spec)
 }
 
 func (Blob) FixedLength(spec *common.Spec) uint64 {
-	return spec.FIELD_ELEMENTS_PER_BLOB.ByteLength()
+	return BlobSize(spec)
 }
 
 func (p Blob) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) tree.Root {
@@ -125,7 +125,7 @@ func (li *Blobs) Deserialize(spec *common.Spec, dr *codec.DecodingReader) error 
 		i := len(*li)
 		*li = append(*li, Blob{})
 		return spec.Wrap(&((*li)[i]))
-	}, BlobSize(spec), uint64(spec.MAX_BLOBS_PER_BLOCK))
+	}, BlobSize(spec), uint64(spec.MAX_BLOB_COMMITMENTS_PER_BLOCK))
 }
 
 func (li Blobs) Serialize(spec *common.Spec, w *codec.EncodingWriter) error {
@@ -149,7 +149,7 @@ func (li Blobs) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) common.Root {
 			return spec.Wrap(&li[i])
 		}
 		return nil
-	}, length, uint64(spec.MAX_BLOBS_PER_BLOCK))
+	}, length, uint64(spec.MAX_BLOB_COMMITMENTS_PER_BLOCK))
 }
 
 func (li Blobs) Roots(spec *common.Spec, hFn tree.HashFn) BlobRoots {
@@ -162,7 +162,7 @@ func (li Blobs) Roots(spec *common.Spec, hFn tree.HashFn) BlobRoots {
 }
 
 func BlobsType(spec *common.Spec) *ComplexListTypeDef {
-	return ComplexListType(BlobType(spec), uint64(spec.MAX_BLOBS_PER_BLOCK))
+	return ComplexListType(BlobType(spec), uint64(spec.MAX_BLOB_COMMITMENTS_PER_BLOCK))
 }
 
 func (li Blobs) View(spec *common.Spec) (*BlobsView, error) {
@@ -195,7 +195,7 @@ func (v *BlobsView) Raw(spec *common.Spec) (*Blobs, error) {
 		return nil, fmt.Errorf("invalid length for blobs: %d", buf.Len())
 	}
 	commitmentCount := buf.Len() / blobSize
-	if commitmentCount > int(spec.MAX_BLOBS_PER_BLOCK) {
+	if commitmentCount > int(spec.MAX_BLOB_COMMITMENTS_PER_BLOCK) {
 		return nil, fmt.Errorf("too many Blobs: %d", commitmentCount)
 	}
 	bufBytes := buf.Bytes()
@@ -207,7 +207,7 @@ func (v *BlobsView) Raw(spec *common.Spec) (*Blobs, error) {
 }
 
 func BlobRootsType(spec *common.Spec) ListTypeDef {
-	return ListType(RootType, uint64(spec.MAX_BLOBS_PER_BLOCK))
+	return ListType(RootType, uint64(spec.MAX_BLOB_COMMITMENTS_PER_BLOCK))
 }
 
 type BlobRoots []tree.Root
@@ -217,7 +217,7 @@ func (br *BlobRoots) Deserialize(spec *common.Spec, dr *codec.DecodingReader) er
 		i := len(*br)
 		*br = append(*br, tree.Root{})
 		return &(*br)[i]
-	}, RootType.TypeByteLength(), uint64(spec.MAX_BLOBS_PER_BLOCK))
+	}, RootType.TypeByteLength(), uint64(spec.MAX_BLOB_COMMITMENTS_PER_BLOCK))
 }
 
 func (br BlobRoots) Serialize(spec *common.Spec, w *codec.EncodingWriter) error {
@@ -237,7 +237,7 @@ func (br BlobRoots) FixedLength(spec *common.Spec) uint64 {
 func (br BlobRoots) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) tree.Root {
 	return hFn.ChunksHTR(func(i uint64) tree.Root {
 		return br[i]
-	}, uint64(len(br)), uint64(spec.MAX_BLOBS_PER_BLOCK))
+	}, uint64(len(br)), uint64(spec.MAX_BLOB_COMMITMENTS_PER_BLOCK))
 }
 
 func BlobSidecarType(spec *common.Spec) *ContainerTypeDef {

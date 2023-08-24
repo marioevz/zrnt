@@ -105,7 +105,7 @@ func (li *KZGCommitments) Deserialize(spec *Spec, dr *codec.DecodingReader) erro
 		i := len(*li)
 		*li = append(*li, KZGCommitment{})
 		return &((*li)[i])
-	}, KZGCommitmentSize, uint64(spec.MAX_BLOBS_PER_BLOCK))
+	}, KZGCommitmentSize, uint64(spec.MAX_BLOB_COMMITMENTS_PER_BLOCK))
 }
 
 func (li KZGCommitments) Serialize(_ *Spec, w *codec.EncodingWriter) error {
@@ -129,11 +129,11 @@ func (li KZGCommitments) HashTreeRoot(spec *Spec, hFn tree.HashFn) Root {
 			return &li[i]
 		}
 		return nil
-	}, length, uint64(spec.MAX_BLOBS_PER_BLOCK))
+	}, length, uint64(spec.MAX_BLOB_COMMITMENTS_PER_BLOCK))
 }
 
 func KZGCommitmentsType(spec *Spec) *ComplexListTypeDef {
-	return ComplexListType(KZGCommitmentType, uint64(spec.MAX_BLOBS_PER_BLOCK))
+	return ComplexListType(KZGCommitmentType, uint64(spec.MAX_BLOB_COMMITMENTS_PER_BLOCK))
 }
 
 func (li KZGCommitments) View(spec *Spec) (*KZGCommitmentsView, error) {
@@ -165,7 +165,7 @@ func (v *KZGCommitmentsView) Raw(spec *Spec) (*KZGCommitments, error) {
 		return nil, fmt.Errorf("invalid length for KZGCommitments: %d", buf.Len())
 	}
 	commitmentCount := buf.Len() / KZGCommitmentSize
-	if commitmentCount > int(spec.MAX_BLOBS_PER_BLOCK) {
+	if commitmentCount > int(spec.MAX_BLOB_COMMITMENTS_PER_BLOCK) {
 		return nil, fmt.Errorf("too many KZGCommitments: %d", commitmentCount)
 	}
 	bufBytes := buf.Bytes()
@@ -250,7 +250,7 @@ func (li *KZGProofs) Deserialize(spec *Spec, dr *codec.DecodingReader) error {
 		i := len(*li)
 		*li = append(*li, KZGProof{})
 		return &((*li)[i])
-	}, KZGProofSize, uint64(spec.MAX_BLOBS_PER_BLOCK))
+	}, KZGProofSize, uint64(spec.MAX_BLOB_COMMITMENTS_PER_BLOCK))
 }
 
 func (li KZGProofs) Serialize(_ *Spec, w *codec.EncodingWriter) error {
@@ -274,11 +274,11 @@ func (li KZGProofs) HashTreeRoot(spec *Spec, hFn tree.HashFn) Root {
 			return &li[i]
 		}
 		return nil
-	}, length, uint64(spec.MAX_BLOBS_PER_BLOCK))
+	}, length, uint64(spec.MAX_BLOB_COMMITMENTS_PER_BLOCK))
 }
 
 func KZGProofsType(spec *Spec) *ComplexListTypeDef {
-	return ComplexListType(KZGProofType, uint64(spec.MAX_BLOBS_PER_BLOCK))
+	return ComplexListType(KZGProofType, uint64(spec.MAX_BLOB_COMMITMENTS_PER_BLOCK))
 }
 
 func (li KZGProofs) View(spec *Spec) (*KZGProofsView, error) {
@@ -310,7 +310,7 @@ func (v *KZGProofsView) Raw(spec *Spec) (*KZGProofs, error) {
 		return nil, fmt.Errorf("invalid length for KZGProofs: %d", buf.Len())
 	}
 	commitmentCount := buf.Len() / KZGProofSize
-	if commitmentCount > int(spec.MAX_BLOBS_PER_BLOCK) {
+	if commitmentCount > int(spec.MAX_BLOB_COMMITMENTS_PER_BLOCK) {
 		return nil, fmt.Errorf("too many KZGProofs: %d", commitmentCount)
 	}
 	bufBytes := buf.Bytes()
