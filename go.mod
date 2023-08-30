@@ -1,6 +1,6 @@
 module github.com/protolambda/zrnt
 
-go 1.16
+go 1.20
 
 require (
 	github.com/golang/snappy v0.0.3
@@ -10,4 +10,9 @@ require (
 	github.com/protolambda/messagediff v1.4.0
 	github.com/protolambda/ztyp v0.2.2
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
+)
+
+require (
+	github.com/holiman/uint256 v1.2.0 // indirect
+	golang.org/x/sys v0.0.0-20201101102859-da207088b7d1 // indirect
 )
