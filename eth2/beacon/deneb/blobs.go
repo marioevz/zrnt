@@ -235,9 +235,13 @@ func (br BlobRoots) FixedLength(spec *common.Spec) uint64 {
 }
 
 func (br BlobRoots) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) tree.Root {
-	return hFn.ChunksHTR(func(i uint64) tree.Root {
-		return br[i]
-	}, uint64(len(br)), uint64(spec.MAX_BLOB_COMMITMENTS_PER_BLOCK))
+	length := uint64(len(br))
+	return hFn.ComplexListHTR(func(i uint64) tree.HTR {
+		if i < length {
+			return &br[i]
+		}
+		return nil
+	}, length, uint64(spec.MAX_BLOB_COMMITMENTS_PER_BLOCK))
 }
 
 func BlobSidecarType(spec *common.Spec) *ContainerTypeDef {
