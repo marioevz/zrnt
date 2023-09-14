@@ -2,6 +2,7 @@ package deneb
 
 import (
 	"bytes"
+	"encoding/hex"
 	"errors"
 	"fmt"
 
@@ -94,7 +95,6 @@ func (p Blob) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) tree.Root {
 	return hFn.ByteVectorHTR(p[:])
 }
 
-/*
 func (p Blob) MarshalText() ([]byte, error) {
 	return []byte("0x" + hex.EncodeToString(p[:])), nil
 }
@@ -110,13 +110,9 @@ func (p *Blob) UnmarshalText(text []byte) error {
 	if len(text) >= 2 && text[0] == '0' && (text[1] == 'x' || text[1] == 'X') {
 		text = text[2:]
 	}
-	if len(text) != int(2*BlobSize(spec)) {
-		return fmt.Errorf("unexpected length string '%s'", string(text))
-	}
 	_, err := hex.Decode((*p)[:], text)
 	return err
 }
-*/
 
 type Blobs []Blob
 
@@ -285,7 +281,16 @@ func (b *BlobSidecar) FixedLength(spec *common.Spec) uint64 {
 }
 
 func (b *BlobSidecar) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) common.Root {
-	return hFn.HashTreeRoot(&b.BlockRoot, &b.Index, &b.Slot, &b.BlockParentRoot, &b.ProposerIndex, spec.Wrap(&b.Blob), &b.KZGCommitment, &b.KZGProof)
+	return hFn.HashTreeRoot(
+		&b.BlockRoot,
+		&b.Index,
+		&b.Slot,
+		&b.BlockParentRoot,
+		&b.ProposerIndex,
+		spec.Wrap(&b.Blob),
+		&b.KZGCommitment,
+		&b.KZGProof,
+	)
 }
 
 type SignedBlobSidecar struct {
@@ -352,7 +357,16 @@ func (b *BlindedBlobSidecar) FixedLength() uint64 {
 }
 
 func (b *BlindedBlobSidecar) HashTreeRoot(hFn tree.HashFn) common.Root {
-	return hFn.HashTreeRoot(&b.BlockRoot, &b.Index, &b.Slot, &b.BlockParentRoot, &b.ProposerIndex, &b.BlobRoot, &b.KZGCommitment, &b.KZGProof)
+	return hFn.HashTreeRoot(
+		&b.BlockRoot,
+		&b.Index,
+		&b.Slot,
+		&b.BlockParentRoot,
+		&b.ProposerIndex,
+		&b.BlobRoot,
+		&b.KZGCommitment,
+		&b.KZGProof,
+	)
 }
 
 func (b *BlindedBlobSidecar) Unblind(blob *Blob) *BlobSidecar {
