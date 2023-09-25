@@ -8,6 +8,7 @@ import (
 
 	"github.com/protolambda/zrnt/eth2/beacon/common"
 	"github.com/protolambda/ztyp/codec"
+	"github.com/protolambda/ztyp/conv"
 	"github.com/protolambda/ztyp/tree"
 	. "github.com/protolambda/ztyp/view"
 )
@@ -107,11 +108,9 @@ func (p *Blob) UnmarshalText(text []byte) error {
 	if p == nil {
 		return errors.New("cannot decode into nil Blob")
 	}
-	if len(text) >= 2 && text[0] == '0' && (text[1] == 'x' || text[1] == 'X') {
-		text = text[2:]
-	}
-	_, err := hex.Decode((*p)[:], text)
-	return err
+	// TODO: This might yield a blob with an out-of-spec length, but there's no way to recover
+	// the spec from the context of the unmarshal.
+	return conv.DynamicBytesUnmarshalText((*[]byte)(p), text[:])
 }
 
 type Blobs []Blob
