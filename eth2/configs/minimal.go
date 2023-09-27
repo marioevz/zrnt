@@ -95,6 +95,7 @@ var Minimal = &common.Spec{
 		EJECTION_BALANCE:                      16_000_000_000,
 		MIN_PER_EPOCH_CHURN_LIMIT:             4,
 		CHURN_LIMIT_QUOTIENT:                  32,
+		MAX_PER_EPOCH_ACTIVATION_CHURN_LIMIT:  4,
 		PROPOSER_SCORE_BOOST:                  40,
 		DEPOSIT_CHAIN_ID:                      5,
 		DEPOSIT_NETWORK_ID:                    5,
