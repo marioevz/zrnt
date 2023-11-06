@@ -6,8 +6,6 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/protolambda/zrnt/eth2/beacon/capella"
-
 	"github.com/golang/snappy"
 	"github.com/protolambda/ztyp/codec"
 	"github.com/protolambda/ztyp/tree"
@@ -15,7 +13,9 @@ import (
 
 	"github.com/protolambda/zrnt/eth2/beacon/altair"
 	"github.com/protolambda/zrnt/eth2/beacon/bellatrix"
+	"github.com/protolambda/zrnt/eth2/beacon/capella"
 	"github.com/protolambda/zrnt/eth2/beacon/common"
+	"github.com/protolambda/zrnt/eth2/beacon/deneb"
 	"github.com/protolambda/zrnt/eth2/beacon/phase0"
 	"github.com/protolambda/zrnt/eth2/configs"
 	"github.com/protolambda/zrnt/tests/spec/test_util"
@@ -102,6 +102,7 @@ var objs = map[test_util.ForkName]map[string]ObjAllocator{
 	"altair":    {},
 	"bellatrix": {},
 	"capella":   {},
+	"deneb":     {},
 }
 
 func init() {
@@ -134,44 +135,55 @@ func init() {
 		objs["altair"][k] = v
 		objs["bellatrix"][k] = v
 		objs["capella"][k] = v
+		objs["deneb"][k] = v
 	}
 	objs["phase0"]["BeaconBlockBody"] = func() interface{} { return new(phase0.BeaconBlockBody) }
 	objs["phase0"]["BeaconBlock"] = func() interface{} { return new(phase0.BeaconBlock) }
 	objs["phase0"]["BeaconState"] = func() interface{} { return new(phase0.BeaconState) }
 	objs["phase0"]["SignedBeaconBlock"] = func() interface{} { return new(phase0.SignedBeaconBlock) }
 
-	objs["altair"]["BeaconBlockBody"] = func() interface{} { return new(altair.BeaconBlockBody) }
 	objs["altair"]["BeaconBlock"] = func() interface{} { return new(altair.BeaconBlock) }
+	objs["altair"]["BeaconBlockBody"] = func() interface{} { return new(altair.BeaconBlockBody) }
 	objs["altair"]["BeaconState"] = func() interface{} { return new(altair.BeaconState) }
-	objs["altair"]["SignedBeaconBlock"] = func() interface{} { return new(altair.SignedBeaconBlock) }
-	objs["altair"]["SyncAggregate"] = func() interface{} { return new(altair.SyncAggregate) }
-
+	objs["altair"]["ContributionAndProof"] = func() interface{} { return new(altair.ContributionAndProof) }
 	objs["altair"]["LightClientSnapshot"] = func() interface{} { return new(altair.LightClientSnapshot) }
 	objs["altair"]["LightClientUpdate"] = func() interface{} { return new(altair.LightClientUpdate) }
-	objs["altair"]["SyncAggregatorSelectionData"] = func() interface{} { return new(altair.SyncAggregatorSelectionData) }
-	objs["altair"]["SyncCommitteeContribution"] = func() interface{} { return new(altair.SyncCommitteeContribution) }
-	objs["altair"]["ContributionAndProof"] = func() interface{} { return new(altair.ContributionAndProof) }
+	objs["altair"]["SignedBeaconBlock"] = func() interface{} { return new(altair.SignedBeaconBlock) }
 	objs["altair"]["SignedContributionAndProof"] = func() interface{} { return new(altair.SignedContributionAndProof) }
-	objs["altair"]["SyncCommitteeMessage"] = func() interface{} { return new(altair.SyncCommitteeMessage) }
+	objs["altair"]["SyncAggregate"] = func() interface{} { return new(altair.SyncAggregate) }
+	objs["altair"]["SyncAggregatorSelectionData"] = func() interface{} { return new(altair.SyncAggregatorSelectionData) }
 	objs["altair"]["SyncCommittee"] = func() interface{} { return new(common.SyncCommittee) }
+	objs["altair"]["SyncCommitteeContribution"] = func() interface{} { return new(altair.SyncCommitteeContribution) }
+	objs["altair"]["SyncCommitteeMessage"] = func() interface{} { return new(altair.SyncCommitteeMessage) }
 
-	objs["bellatrix"]["BeaconBlockBody"] = func() interface{} { return new(bellatrix.BeaconBlockBody) }
 	objs["bellatrix"]["BeaconBlock"] = func() interface{} { return new(bellatrix.BeaconBlock) }
+	objs["bellatrix"]["BeaconBlockBody"] = func() interface{} { return new(bellatrix.BeaconBlockBody) }
 	objs["bellatrix"]["BeaconState"] = func() interface{} { return new(bellatrix.BeaconState) }
-	objs["bellatrix"]["SignedBeaconBlock"] = func() interface{} { return new(bellatrix.SignedBeaconBlock) }
 	objs["bellatrix"]["ExecutionPayload"] = func() interface{} { return new(bellatrix.ExecutionPayload) }
 	objs["bellatrix"]["ExecutionPayloadHeader"] = func() interface{} { return new(bellatrix.ExecutionPayloadHeader) }
+	objs["bellatrix"]["SignedBeaconBlock"] = func() interface{} { return new(bellatrix.SignedBeaconBlock) }
 	//objs["bellatrix"]["PowBlock"] = func() interface{} { return new(bellatrix.PowBlock) }
 
-	objs["capella"]["BeaconBlockBody"] = func() interface{} { return new(capella.BeaconBlockBody) }
 	objs["capella"]["BeaconBlock"] = func() interface{} { return new(capella.BeaconBlock) }
+	objs["capella"]["BeaconBlockBody"] = func() interface{} { return new(capella.BeaconBlockBody) }
 	objs["capella"]["BeaconState"] = func() interface{} { return new(capella.BeaconState) }
-	objs["capella"]["SignedBeaconBlock"] = func() interface{} { return new(capella.SignedBeaconBlock) }
+	objs["capella"]["BLSToExecutionChange"] = func() interface{} { return new(common.BLSToExecutionChange) }
 	objs["capella"]["ExecutionPayload"] = func() interface{} { return new(capella.ExecutionPayload) }
 	objs["capella"]["ExecutionPayloadHeader"] = func() interface{} { return new(capella.ExecutionPayloadHeader) }
-	objs["capella"]["Withdrawal"] = func() interface{} { return new(common.Withdrawal) }
-	objs["capella"]["BLSToExecutionChange"] = func() interface{} { return new(common.BLSToExecutionChange) }
+	objs["capella"]["SignedBeaconBlock"] = func() interface{} { return new(capella.SignedBeaconBlock) }
 	objs["capella"]["SignedBLSToExecutionChange"] = func() interface{} { return new(common.SignedBLSToExecutionChange) }
+	objs["capella"]["Withdrawal"] = func() interface{} { return new(common.Withdrawal) }
+
+	objs["deneb"]["BeaconBlockBody"] = func() interface{} { return new(deneb.BeaconBlockBody) }
+	objs["deneb"]["BeaconBlock"] = func() interface{} { return new(deneb.BeaconBlock) }
+	objs["deneb"]["BeaconState"] = func() interface{} { return new(deneb.BeaconState) }
+	objs["deneb"]["BlobIdentifier"] = func() interface{} { return new(deneb.BlobIdentifier) }
+	objs["deneb"]["BlobSidecar"] = func() interface{} { return new(deneb.BlobSidecar) }
+	objs["deneb"]["BLSToExecutionChange"] = func() interface{} { return new(common.BLSToExecutionChange) }
+	objs["deneb"]["SignedBLSToExecutionChange"] = func() interface{} { return new(common.SignedBLSToExecutionChange) }
+	objs["deneb"]["SignedBeaconBlock"] = func() interface{} { return new(deneb.SignedBeaconBlock) }
+	objs["deneb"]["ExecutionPayload"] = func() interface{} { return new(deneb.ExecutionPayload) }
+	objs["deneb"]["ExecutionPayloadHeader"] = func() interface{} { return new(deneb.ExecutionPayloadHeader) }
 }
 
 type RootsYAML struct {
