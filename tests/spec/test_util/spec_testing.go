@@ -72,7 +72,16 @@ func RunHandler(t *testing.T, handlerPath string, caseRunner CaseRunner, spec *c
 	basepath := filepath.Dir(filepath.Dir(filename))
 	handlerAbsPath := filepath.Join(basepath, "eth2.0-spec-tests", "tests",
 		spec.PRESET_BASE, string(fork), filepath.FromSlash(handlerPath))
-
+	hasSubDirs := func(path string) bool {
+		items, err := ioutil.ReadDir(path)
+		Check(t, err)
+		for _, item := range items {
+			if item.IsDir() {
+				return true
+			}
+		}
+		return false
+	}
 	forEachDir := func(t *testing.T, path string, callItem func(t *testing.T, path string)) {
 		if _, err := os.Stat(path); os.IsNotExist(err) {
 			t.Skipf("missing tests: %s", path)
@@ -107,7 +116,13 @@ func RunHandler(t *testing.T, handlerPath string, caseRunner CaseRunner, spec *c
 
 	runSuite := func(t *testing.T, path string) {
 		//t.Parallel()
-		forEachDir(t, path, runTest)
+		if !hasSubDirs(path) {
+			// no subdirs, just run the test
+			runTest(t, path)
+		} else {
+			// run all subdirs
+			forEachDir(t, path, runTest)
+		}
 	}
 
 	t.Run(handlerPath, func(t *testing.T) {
