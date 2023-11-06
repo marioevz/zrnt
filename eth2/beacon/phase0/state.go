@@ -95,6 +95,19 @@ func (v *BeaconState) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) common.Ro
 		&v.FinalizedCheckpoint)
 }
 
+func (v *BeaconState) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	return hFn.HashTreeProof(index, &v.GenesisTime, v.GenesisValidatorsRoot,
+		&v.Slot, &v.Fork, &v.LatestBlockHeader,
+		spec.Wrap(&v.BlockRoots), spec.Wrap(&v.StateRoots), spec.Wrap(&v.HistoricalRoots),
+		&v.Eth1Data, spec.Wrap(&v.Eth1DataVotes), &v.Eth1DepositIndex,
+		spec.Wrap(&v.Validators), spec.Wrap(&v.Balances),
+		spec.Wrap(&v.RandaoMixes), spec.Wrap(&v.Slashings),
+		spec.Wrap(&v.PreviousEpochAttestations), spec.Wrap(&v.CurrentEpochAttestations),
+		&v.JustificationBits,
+		&v.PreviousJustifiedCheckpoint, &v.CurrentJustifiedCheckpoint,
+		&v.FinalizedCheckpoint)
+}
+
 // Hack to make state fields consistent and verifiable without using many hardcoded indices
 // A trade-off to interpret the state as tree, without generics, and access fields by index very fast.
 const (

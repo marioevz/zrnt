@@ -52,6 +52,10 @@ func (t Timestamp) HashTreeRoot(hFn tree.HashFn) Root {
 	return Uint64View(t).HashTreeRoot(hFn)
 }
 
+func (t Timestamp) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []Root {
+	return Uint64View(t).HashTreeProof(hFn, index)
+}
+
 func (e Timestamp) MarshalJSON() ([]byte, error) {
 	return Uint64View(e).MarshalJSON()
 }
@@ -97,6 +101,10 @@ func (i DepositIndex) HashTreeRoot(hFn tree.HashFn) Root {
 	return Uint64View(i).HashTreeRoot(hFn)
 }
 
+func (i DepositIndex) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []Root {
+	return Uint64View(i).HashTreeProof(hFn, index)
+}
+
 func (e DepositIndex) MarshalJSON() ([]byte, error) {
 	return Uint64View(e).MarshalJSON()
 }
@@ -135,6 +143,10 @@ func (Slot) FixedLength() uint64 {
 
 func (s Slot) HashTreeRoot(hFn tree.HashFn) Root {
 	return Uint64View(s).HashTreeRoot(hFn)
+}
+
+func (s Slot) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []Root {
+	return Uint64View(s).HashTreeProof(hFn, index)
 }
 
 func (s Slot) Previous() Slot {
@@ -198,6 +210,10 @@ func (Epoch) FixedLength() uint64 {
 
 func (e Epoch) HashTreeRoot(hFn tree.HashFn) Root {
 	return Uint64View(e).HashTreeRoot(hFn)
+}
+
+func (e Epoch) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []Root {
+	return Uint64View(e).HashTreeProof(hFn, index)
 }
 
 func (e Epoch) Previous() Epoch {

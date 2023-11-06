@@ -38,6 +38,10 @@ func (p *IndexedAttestation) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) co
 	return hFn.HashTreeRoot(spec.Wrap(&p.AttestingIndices), &p.Data, p.Signature)
 }
 
+func (a *IndexedAttestation) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	return hFn.HashTreeProof(index, spec.Wrap(&a.AttestingIndices), &a.Data, a.Signature)
+}
+
 func IndexedAttestationType(spec *common.Spec) *ContainerTypeDef {
 	return ContainerType("IndexedAttestation", []FieldDef{
 		{"attesting_indices", spec.CommitteeIndices()},

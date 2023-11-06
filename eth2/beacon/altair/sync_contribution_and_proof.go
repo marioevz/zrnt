@@ -66,6 +66,15 @@ func (cnp *ContributionAndProof) HashTreeRoot(spec *common.Spec, hFn tree.HashFn
 	)
 }
 
+func (cnp *ContributionAndProof) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	return hFn.HashTreeProof(
+		index,
+		&cnp.AggregatorIndex,
+		spec.Wrap(&cnp.Contribution),
+		&cnp.SelectionProof,
+	)
+}
+
 type ContributionAndProofView struct {
 	*ContainerView
 }
@@ -105,6 +114,10 @@ func (a *SignedContributionAndProof) FixedLength(*common.Spec) uint64 {
 
 func (b *SignedContributionAndProof) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) common.Root {
 	return hFn.HashTreeRoot(spec.Wrap(&b.Message), b.Signature)
+}
+
+func (b *SignedContributionAndProof) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	return hFn.HashTreeProof(index, spec.Wrap(&b.Message), b.Signature)
 }
 
 // VerifySignature verifies the outer Signature ONLY. This does not verify the selection proof or contribution contents.

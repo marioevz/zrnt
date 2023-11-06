@@ -36,6 +36,10 @@ func (d *Eth2Data) HashTreeRoot(hFn tree.HashFn) Root {
 	return hFn.HashTreeRoot(&d.ForkDigest, &d.NextForkVersion, &d.NextForkEpoch)
 }
 
+func (d *Eth2Data) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []Root {
+	return hFn.HashTreeProof(index, &d.ForkDigest, &d.NextForkVersion, &d.NextForkEpoch)
+}
+
 const ATTESTATION_SUBNET_COUNT = 64
 
 const attnetByteLen = (ATTESTATION_SUBNET_COUNT + 7) / 8
@@ -68,6 +72,10 @@ func (AttnetBits) FixedLength() uint64 {
 func (p AttnetBits) HashTreeRoot(_ tree.HashFn) (out Root) {
 	copy(out[:], p[:])
 	return
+}
+
+func (p AttnetBits) HashTreeProof(_ tree.HashFn, _ tree.Gindex) []Root {
+	return nil
 }
 
 func (p AttnetBits) MarshalText() ([]byte, error) {

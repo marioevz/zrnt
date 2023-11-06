@@ -41,6 +41,10 @@ func (p Version) HashTreeRoot(_ tree.HashFn) (out Root) {
 	return
 }
 
+func (p Version) HashTreeProof(_ tree.HashFn, _ tree.Gindex) []Root {
+	return nil
+}
+
 func (p Version) MarshalText() ([]byte, error) {
 	return []byte("0x" + hex.EncodeToString(p[:])), nil
 }
@@ -105,6 +109,10 @@ func (p ForkDigest) HashTreeRoot(_ tree.HashFn) (out Root) {
 	return
 }
 
+func (p ForkDigest) HashTreeProof(_ tree.HashFn, index tree.Gindex) []Root {
+	return nil
+}
+
 func (p ForkDigest) MarshalText() ([]byte, error) {
 	return []byte("0x" + hex.EncodeToString(p[:])), nil
 }
@@ -157,6 +165,10 @@ func (d *ForkData) HashTreeRoot(hFn tree.HashFn) Root {
 	return hFn.HashTreeRoot(d.CurrentVersion, d.GenesisValidatorsRoot)
 }
 
+func (d *ForkData) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []Root {
+	return hFn.HashTreeProof(index, d.CurrentVersion, d.GenesisValidatorsRoot)
+}
+
 func ComputeForkDataRoot(currentVersion Version, genesisValidatorsRoot Root) Root {
 	data := ForkData{
 		CurrentVersion:        currentVersion,
@@ -196,6 +208,10 @@ func (a *Fork) FixedLength() uint64 {
 
 func (a *Fork) HashTreeRoot(hFn tree.HashFn) Root {
 	return hFn.HashTreeRoot(a.PreviousVersion, a.CurrentVersion, a.Epoch)
+}
+
+func (a *Fork) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []Root {
+	return hFn.HashTreeProof(index, a.PreviousVersion, a.CurrentVersion, a.Epoch)
 }
 
 func (f *Fork) View() *ForkView {

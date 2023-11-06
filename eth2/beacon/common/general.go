@@ -36,6 +36,10 @@ func (i CommitteeIndex) HashTreeRoot(hFn tree.HashFn) Root {
 	return Uint64View(i).HashTreeRoot(hFn)
 }
 
+func (i CommitteeIndex) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []Root {
+	return Uint64View(i).HashTreeProof(hFn, index)
+}
+
 func (e CommitteeIndex) MarshalJSON() ([]byte, error) {
 	return Uint64View(e).MarshalJSON()
 }
@@ -75,6 +79,10 @@ func (g Gwei) FixedLength() uint64 {
 
 func (g Gwei) HashTreeRoot(hFn tree.HashFn) Root {
 	return Uint64View(g).HashTreeRoot(hFn)
+}
+
+func (g Gwei) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []Root {
+	return Uint64View(g).HashTreeProof(hFn, index)
 }
 
 func (e Gwei) MarshalJSON() ([]byte, error) {
@@ -123,6 +131,10 @@ func (g *Checkpoint) FixedLength() uint64 {
 
 func (c *Checkpoint) HashTreeRoot(hFn tree.HashFn) Root {
 	return hFn.HashTreeRoot(c.Epoch, c.Root)
+}
+
+func (c *Checkpoint) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []Root {
+	return hFn.HashTreeProof(index, c.Epoch, c.Root)
 }
 
 func (c *Checkpoint) View() *CheckpointView {

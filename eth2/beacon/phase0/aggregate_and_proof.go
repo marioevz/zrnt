@@ -111,6 +111,10 @@ func (a *SignedAggregateAndProof) HashTreeRoot(spec *common.Spec, hFn tree.HashF
 	return hFn.HashTreeRoot(spec.Wrap(&a.Message), &a.Signature)
 }
 
+func (a *SignedAggregateAndProof) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	return hFn.HashTreeProof(index, spec.Wrap(&a.Message), &a.Signature)
+}
+
 type AggregateAndProof struct {
 	AggregatorIndex common.ValidatorIndex `json:"aggregator_index"`
 	Aggregate       Attestation           `json:"aggregate"`
@@ -135,4 +139,8 @@ func (a *AggregateAndProof) FixedLength(*common.Spec) uint64 {
 
 func (a *AggregateAndProof) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) common.Root {
 	return hFn.HashTreeRoot(&a.AggregatorIndex, spec.Wrap(&a.Aggregate), &a.SelectionProof)
+}
+
+func (a *AggregateAndProof) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	return hFn.HashTreeProof(index, &a.AggregatorIndex, spec.Wrap(&a.Aggregate), &a.SelectionProof)
 }

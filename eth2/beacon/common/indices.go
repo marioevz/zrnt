@@ -36,6 +36,12 @@ func (p CommitteeIndices) HashTreeRoot(spec *Spec, hFn tree.HashFn) Root {
 	}, uint64(len(p)), uint64(spec.MAX_VALIDATORS_PER_COMMITTEE))
 }
 
+func (p CommitteeIndices) HashTreeProof(spec *Spec, hFn tree.HashFn, index tree.Gindex) []Root {
+	return hFn.Uint64ListHTP(func(i uint64) uint64 {
+		return uint64(p[i])
+	}, uint64(len(p)), uint64(spec.MAX_PROPOSER_SLASHINGS), index)
+}
+
 func (c *Phase0Preset) CommitteeIndices() ListTypeDef {
 	return ListType(ValidatorIndexType, uint64(c.MAX_VALIDATORS_PER_COMMITTEE))
 }

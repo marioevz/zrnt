@@ -51,6 +51,10 @@ func (a *Attestation) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) common.Ro
 	return hFn.HashTreeRoot(spec.Wrap(&a.AggregationBits), &a.Data, a.Signature)
 }
 
+func (a *Attestation) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	return hFn.HashTreeProof(index, spec.Wrap(&a.AggregationBits), &a.Data, a.Signature)
+}
+
 type Attestations []Attestation
 
 func (a *Attestations) Deserialize(spec *common.Spec, dr *codec.DecodingReader) error {
@@ -86,6 +90,16 @@ func (li Attestations) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) common.R
 		}
 		return nil
 	}, length, uint64(spec.MAX_ATTESTATIONS))
+}
+
+func (li Attestations) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	length := uint64(len(li))
+	return hFn.ComplexListHTP(func(i uint64) tree.HTP {
+		if i < length {
+			return spec.Wrap(&li[i])
+		}
+		return nil
+	}, length, uint64(spec.MAX_ATTESTATIONS), index)
 }
 
 func ProcessAttestations(ctx context.Context, spec *common.Spec, epc *common.EpochsContext, state Phase0PendingAttestationsBeaconState, ops []Attestation) error {

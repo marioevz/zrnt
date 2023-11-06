@@ -41,6 +41,13 @@ func (li InactivityScores) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) comm
 	}, length, uint64(spec.VALIDATOR_REGISTRY_LIMIT))
 }
 
+func (li InactivityScores) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	length := uint64(len(li))
+	return hFn.Uint64ListHTP(func(i uint64) uint64 {
+		return uint64(li[i])
+	}, length, uint64(spec.VALIDATOR_REGISTRY_LIMIT), index)
+}
+
 func (li InactivityScores) View(spec *common.Spec) (*ParticipationRegistryView, error) {
 	typ := InactivityScoresType(spec)
 	var buf bytes.Buffer

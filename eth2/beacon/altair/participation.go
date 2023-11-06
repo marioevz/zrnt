@@ -42,6 +42,10 @@ func (t ParticipationFlags) HashTreeRoot(hFn tree.HashFn) common.Root {
 	return Uint8View(t).HashTreeRoot(hFn)
 }
 
+func (t ParticipationFlags) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []common.Root {
+	return nil
+}
+
 func (e ParticipationFlags) MarshalJSON() ([]byte, error) {
 	return Uint8View(e).MarshalJSON()
 }
@@ -126,6 +130,12 @@ func (r ParticipationRegistry) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) 
 	return hFn.Uint8ListHTR(func(i uint64) uint8 {
 		return uint8(r[i])
 	}, uint64(len(r)), uint64(spec.VALIDATOR_REGISTRY_LIMIT))
+}
+
+func (r ParticipationRegistry) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	return hFn.Uint8ListHTP(func(i uint64) uint8 {
+		return uint8(r[i])
+	}, uint64(len(r)), uint64(spec.VALIDATOR_REGISTRY_LIMIT), index)
 }
 
 func (r ParticipationRegistry) View(spec *common.Spec) (*ParticipationRegistryView, error) {

@@ -36,6 +36,10 @@ func (jb JustificationBits) HashTreeRoot(hFn tree.HashFn) Root {
 	return Root{0: jb[0]}
 }
 
+func (jb JustificationBits) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []Root {
+	return nil
+}
+
 func (jb *JustificationBits) BitLen() uint64 {
 	return JUSTIFICATION_BITS_LENGTH
 }

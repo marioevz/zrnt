@@ -38,6 +38,13 @@ func (li Balances) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) common.Root 
 	}, length, uint64(spec.VALIDATOR_REGISTRY_LIMIT))
 }
 
+func (li Balances) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	length := uint64(len(li))
+	return hFn.Uint64ListHTP(func(i uint64) uint64 {
+		return uint64(li[i])
+	}, length, uint64(spec.VALIDATOR_REGISTRY_LIMIT), index)
+}
+
 func (li Balances) View(limit uint64) (*RegistryBalancesView, error) {
 	// TODO: bad copy, converting to a tree more directly somehow would be nice.
 	tmp := make([]BasicView, len(li), len(li))

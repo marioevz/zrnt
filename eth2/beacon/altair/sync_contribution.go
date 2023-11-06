@@ -85,6 +85,17 @@ func (sc *SyncCommitteeContribution) HashTreeRoot(spec *common.Spec, hFn tree.Ha
 	)
 }
 
+func (sc *SyncCommitteeContribution) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	return hFn.HashTreeProof(
+		index,
+		&sc.Slot,
+		sc.BeaconBlockRoot,
+		&sc.SubcommitteeIndex,
+		spec.Wrap(&sc.AggregationBits),
+		&sc.Signature,
+	)
+}
+
 func (sc *SyncCommitteeContribution) VerifySignature(spec *common.Spec, subcommitteePubkeys []*common.CachedPubkey, domFn common.BLSDomainFn) error {
 	pubkeys := make([]*blsu.Pubkey, 0, len(subcommitteePubkeys))
 	for i, pub := range subcommitteePubkeys {

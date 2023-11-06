@@ -99,6 +99,15 @@ func (sb SyncCommitteeProofBranch) HashTreeRoot(hFn tree.HashFn) common.Root {
 	}, syncCommitteeProofLen)
 }
 
+func (sb SyncCommitteeProofBranch) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []common.Root {
+	return hFn.ComplexVectorHTP(func(i uint64) tree.HTP {
+		if i < syncCommitteeProofLen {
+			return sb[i]
+		}
+		return nil
+	}, syncCommitteeProofLen, index)
+}
+
 // Like the above, 5 bits deep, plus 1 for the checkpoint (it has two fields, we take the 2nd)
 const finalizedRootProofLen = 5 + 1
 
@@ -132,6 +141,15 @@ func (fb FinalizedRootProofBranch) HashTreeRoot(hFn tree.HashFn) common.Root {
 		}
 		return nil
 	}, finalizedRootProofLen)
+}
+
+func (fb FinalizedRootProofBranch) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []common.Root {
+	return hFn.ComplexVectorHTP(func(i uint64) tree.HTP {
+		if i < finalizedRootProofLen {
+			return fb[i]
+		}
+		return nil
+	}, finalizedRootProofLen, index)
 }
 
 func LightClientUpdateType(spec *common.Spec) *ContainerTypeDef {
@@ -211,6 +229,19 @@ func (lcu *LightClientUpdate) FixedLength(spec *common.Spec) uint64 {
 
 func (lcu *LightClientUpdate) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) common.Root {
 	return hFn.HashTreeRoot(
+		&lcu.AttestedHeader,
+		spec.Wrap(&lcu.NextSyncCommittee),
+		&lcu.NextSyncCommitteeBranch,
+		&lcu.FinalizedHeader,
+		&lcu.FinalityBranch,
+		spec.Wrap(&lcu.SyncAggregate),
+		&lcu.SignatureSlot,
+	)
+}
+
+func (lcu *LightClientUpdate) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	return hFn.HashTreeProof(
+		index,
 		&lcu.AttestedHeader,
 		spec.Wrap(&lcu.NextSyncCommittee),
 		&lcu.NextSyncCommitteeBranch,

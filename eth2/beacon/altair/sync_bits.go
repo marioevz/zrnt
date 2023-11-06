@@ -41,6 +41,10 @@ func (li SyncCommitteeSubnetBits) HashTreeRoot(spec *common.Spec, hFn tree.HashF
 	return hFn.BitVectorHTR(li)
 }
 
+func (li SyncCommitteeSubnetBits) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	return hFn.BitVectorHTP(li, index)
+}
+
 func (li SyncCommitteeSubnetBits) MarshalText() ([]byte, error) {
 	return conv.BytesMarshalText(li[:])
 }
@@ -124,6 +128,15 @@ func (li SyncCommitteeBits) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) com
 		return SyncCommitteeBitsType(spec).New().HashTreeRoot(hFn)
 	}
 	return hFn.BitVectorHTR(li)
+}
+
+func (li SyncCommitteeBits) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	if li == nil {
+		// By default, we should initialize the full bits.
+		// We can't do that in the struct case dynamically based on preset, but we can at least output the correct HTR.
+		// TODO: return SyncCommitteeBitsType(spec).New().HashTreeProof(hFn)
+	}
+	return hFn.BitVectorHTP(li, index)
 }
 
 func (li SyncCommitteeBits) MarshalText() ([]byte, error) {

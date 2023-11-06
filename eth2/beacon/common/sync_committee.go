@@ -45,6 +45,12 @@ func (li SyncCommitteePubkeys) HashTreeRoot(spec *Spec, hFn tree.HashFn) Root {
 	}, uint64(spec.SYNC_COMMITTEE_SIZE))
 }
 
+func (li SyncCommitteePubkeys) HashTreeProof(spec *Spec, hFn tree.HashFn, index tree.Gindex) []Root {
+	return hFn.ComplexVectorHTP(func(i uint64) tree.HTP {
+		return &li[i]
+	}, uint64(spec.SYNC_COMMITTEE_SIZE), index)
+}
+
 type SyncCommitteePubkeysView struct {
 	*ComplexVectorView
 }
@@ -104,6 +110,10 @@ func (*SyncCommittee) FixedLength(spec *Spec) uint64 {
 
 func (p *SyncCommittee) HashTreeRoot(spec *Spec, hFn tree.HashFn) Root {
 	return hFn.HashTreeRoot(spec.Wrap(&p.Pubkeys), &p.AggregatePubkey)
+}
+
+func (p *SyncCommittee) HashTreeProof(spec *Spec, hFn tree.HashFn, index tree.Gindex) []Root {
+	return hFn.HashTreeProof(index, spec.Wrap(&p.Pubkeys), &p.AggregatePubkey)
 }
 
 func (p *SyncCommittee) View(spec *Spec) (*SyncCommitteeView, error) {

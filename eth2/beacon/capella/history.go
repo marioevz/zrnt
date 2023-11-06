@@ -40,6 +40,10 @@ func (hs *HistoricalSummary) HashTreeRoot(hFn tree.HashFn) common.Root {
 	return hFn.HashTreeRoot(&hs.BlockSummaryRoot, &hs.StateSummaryRoot)
 }
 
+func (hs *HistoricalSummary) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []common.Root {
+	return hFn.HashTreeProof(index, hs.BlockSummaryRoot, hs.StateSummaryRoot)
+}
+
 var HistoricalSummaryType = ContainerType("HistoricalSummary", []FieldDef{
 	{"block_summary_root", RootType},
 	{"state_summary_root", RootType},
@@ -78,6 +82,16 @@ func (li HistoricalSummaries) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) c
 		}
 		return nil
 	}, length, uint64(spec.HISTORICAL_ROOTS_LIMIT))
+}
+
+func (li HistoricalSummaries) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	length := uint64(len(li))
+	return hFn.ComplexListHTP(func(i uint64) tree.HTP {
+		if i < length {
+			return &li[i]
+		}
+		return nil
+	}, length, uint64(spec.HISTORICAL_ROOTS_LIMIT), index)
 }
 
 func HistoricalSummariesType(spec *common.Spec) ListTypeDef {

@@ -50,6 +50,16 @@ func (li VoluntaryExits) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) common
 	}, length, uint64(spec.MAX_VOLUNTARY_EXITS))
 }
 
+func (li VoluntaryExits) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	length := uint64(len(li))
+	return hFn.ComplexListHTP(func(i uint64) tree.HTP {
+		if i < length {
+			return &li[i]
+		}
+		return nil
+	}, length, uint64(spec.MAX_VOLUNTARY_EXITS), index)
+}
+
 func ProcessVoluntaryExits(ctx context.Context, spec *common.Spec, epc *common.EpochsContext, state common.BeaconState, ops []SignedVoluntaryExit) error {
 	for i := range ops {
 		if err := ctx.Err(); err != nil {
@@ -93,6 +103,10 @@ func (v *VoluntaryExit) HashTreeRoot(hFn tree.HashFn) common.Root {
 	return hFn.HashTreeRoot(v.Epoch, v.ValidatorIndex)
 }
 
+func (v *VoluntaryExit) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []common.Root {
+	return hFn.HashTreeProof(index, v.Epoch, v.ValidatorIndex)
+}
+
 type SignedVoluntaryExit struct {
 	Message   VoluntaryExit       `json:"message" yaml:"message"`
 	Signature common.BLSSignature `json:"signature" yaml:"signature"`
@@ -116,6 +130,10 @@ func (*SignedVoluntaryExit) FixedLength() uint64 {
 
 func (v *SignedVoluntaryExit) HashTreeRoot(hFn tree.HashFn) common.Root {
 	return hFn.HashTreeRoot(&v.Message, v.Signature)
+}
+
+func (v *SignedVoluntaryExit) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []common.Root {
+	return hFn.HashTreeProof(index, &v.Message, v.Signature)
 }
 
 var SignedVoluntaryExitType = ContainerType("SignedVoluntaryExit", []FieldDef{

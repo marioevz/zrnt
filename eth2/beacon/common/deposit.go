@@ -51,6 +51,10 @@ func (d *DepositData) HashTreeRoot(hFn tree.HashFn) Root {
 	return hFn.HashTreeRoot(d.Pubkey, d.WithdrawalCredentials, d.Amount, d.Signature)
 }
 
+func (d *DepositData) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []Root {
+	return hFn.HashTreeProof(index, d.Pubkey, d.WithdrawalCredentials, d.Amount, d.Signature)
+}
+
 // hash-tree-root excluding the signature
 func (d *DepositData) MessageRoot() Root {
 	return d.ToMessage().HashTreeRoot(tree.GetHashFn())
@@ -88,6 +92,10 @@ func (b *DepositMessage) HashTreeRoot(hFn tree.HashFn) Root {
 	return hFn.HashTreeRoot(b.Pubkey, b.WithdrawalCredentials, b.Amount)
 }
 
+func (b *DepositMessage) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []Root {
+	return hFn.HashTreeProof(index, b.Pubkey, b.WithdrawalCredentials, b.Amount)
+}
+
 var DepositProofType = VectorType(Bytes32Type, DEPOSIT_CONTRACT_TREE_DEPTH+1)
 
 // DepositProof contains the proof for the merkle-path to deposit root, including list mix-in.
@@ -119,6 +127,12 @@ func (b *DepositProof) HashTreeRoot(hFn tree.HashFn) Root {
 	}, uint64(len(b)), uint64(len(b)))
 }
 
+func (b *DepositProof) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []Root {
+	return hFn.ChunksHTP(func(i uint64) tree.Root {
+		return b[i]
+	}, tree.NilProofFunc, uint64(len(b)), uint64(len(b)), index)
+}
+
 type Deposit struct {
 	Proof DepositProof `json:"proof" yaml:"proof"`
 	Data  DepositData  `json:"data" yaml:"data"`
@@ -142,6 +156,10 @@ func (a *Deposit) FixedLength() uint64 {
 
 func (b *Deposit) HashTreeRoot(hFn tree.HashFn) Root {
 	return hFn.HashTreeRoot(&b.Proof, &b.Data)
+}
+
+func (b *Deposit) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []Root {
+	return hFn.HashTreeProof(index, &b.Proof, &b.Data)
 }
 
 var DepositType = ContainerType("Deposit", []FieldDef{

@@ -52,6 +52,16 @@ func (li Deposits) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) common.Root 
 	}, length, uint64(spec.MAX_DEPOSITS))
 }
 
+func (li Deposits) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	length := uint64(len(li))
+	return hFn.ComplexListHTP(func(i uint64) tree.HTP {
+		if i < length {
+			return &li[i]
+		}
+		return nil
+	}, length, uint64(spec.MAX_DEPOSITS), index)
+}
+
 // Verify that outstanding deposits are processed up to the maximum number of deposits, then process all in order.
 func ProcessDeposits(ctx context.Context, spec *common.Spec, epc *common.EpochsContext, state common.BeaconState, ops []common.Deposit) error {
 	inputCount := uint64(len(ops))

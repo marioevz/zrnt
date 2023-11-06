@@ -39,6 +39,10 @@ func (i ValidatorIndex) HashTreeRoot(hFn tree.HashFn) Root {
 	return Uint64View(i).HashTreeRoot(hFn)
 }
 
+func (i ValidatorIndex) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []Root {
+	return Uint64View(i).HashTreeProof(hFn, index)
+}
+
 func (e ValidatorIndex) MarshalJSON() ([]byte, error) {
 	return Uint64View(e).MarshalJSON()
 }

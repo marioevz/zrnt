@@ -222,6 +222,12 @@ func (s *ExecutionPayloadHeader) HashTreeRoot(hFn tree.HashFn) common.Root {
 		&s.GasUsed, &s.Timestamp, &s.ExtraData, &s.BaseFeePerGas, &s.BlockHash, &s.TransactionsRoot)
 }
 
+func (s *ExecutionPayloadHeader) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []common.Root {
+	return hFn.HashTreeProof(index, s.ParentHash, &s.FeeRecipient, s.StateRoot,
+		s.ReceiptsRoot, &s.LogsBloom, s.PrevRandao, &s.BlockNumber, &s.GasLimit,
+		&s.GasUsed, &s.Timestamp, &s.ExtraData, &s.BaseFeePerGas, s.BlockHash, s.TransactionsRoot)
+}
+
 func ExecutionPayloadType(spec *common.Spec) *ContainerTypeDef {
 	return ContainerType("ExecutionPayload", []FieldDef{
 		{"parent_hash", common.Hash32Type},
@@ -294,6 +300,12 @@ func (s *ExecutionPayload) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) comm
 	return hFn.HashTreeRoot(&s.ParentHash, &s.FeeRecipient, &s.StateRoot,
 		&s.ReceiptsRoot, &s.LogsBloom, &s.PrevRandao, &s.BlockNumber, &s.GasLimit,
 		&s.GasUsed, &s.Timestamp, &s.ExtraData, &s.BaseFeePerGas, &s.BlockHash, spec.Wrap(&s.Transactions))
+}
+
+func (s *ExecutionPayload) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	return hFn.HashTreeProof(index, s.ParentHash, &s.FeeRecipient, s.StateRoot,
+		s.ReceiptsRoot, &s.LogsBloom, s.PrevRandao, &s.BlockNumber, &s.GasLimit,
+		&s.GasUsed, &s.Timestamp, &s.ExtraData, &s.BaseFeePerGas, s.BlockHash, spec.Wrap(&s.Transactions))
 }
 
 func (ep *ExecutionPayload) Header(spec *common.Spec) *ExecutionPayloadHeader {

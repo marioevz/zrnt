@@ -48,6 +48,10 @@ func (a *AttesterSlashing) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) comm
 	return hFn.HashTreeRoot(spec.Wrap(&a.Attestation1), spec.Wrap(&a.Attestation2))
 }
 
+func (a *AttesterSlashing) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	return hFn.HashTreeProof(index, spec.Wrap(&a.Attestation1), spec.Wrap(&a.Attestation2))
+}
+
 func BlockAttesterSlashingsType(spec *common.Spec) ListTypeDef {
 	return ListType(AttesterSlashingType(spec), uint64(spec.MAX_ATTESTER_SLASHINGS))
 }
@@ -94,6 +98,16 @@ func (li AttesterSlashings) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) com
 		}
 		return nil
 	}, length, uint64(spec.MAX_ATTESTER_SLASHINGS))
+}
+
+func (li AttesterSlashings) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	length := uint64(len(li))
+	return hFn.ComplexListHTP(func(i uint64) tree.HTP {
+		if i < length {
+			return spec.Wrap(&li[i])
+		}
+		return nil
+	}, length, uint64(spec.MAX_ATTESTER_SLASHINGS), index)
 }
 
 func ProcessAttesterSlashing(spec *common.Spec, epc *common.EpochsContext, state common.BeaconState, attesterSlashing *AttesterSlashing) error {

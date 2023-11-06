@@ -41,6 +41,13 @@ func (p BLSPubkey) HashTreeRoot(hFn tree.HashFn) tree.Root {
 	return hFn(a, b)
 }
 
+func (p BLSPubkey) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []tree.Root {
+	var a, b tree.Root
+	copy(a[:], p[0:32])
+	copy(b[:], p[32:48])
+	return hFn.HashTreeProof(index, a, b)
+}
+
 func (p BLSPubkey) MarshalText() ([]byte, error) {
 	return []byte("0x" + hex.EncodeToString(p[:])), nil
 }
@@ -125,6 +132,15 @@ func (s BLSSignature) HashTreeRoot(hFn tree.HashFn) tree.Root {
 	return hFn(hFn(a, b), hFn(c, tree.Root{}))
 }
 
+func (s BLSSignature) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []tree.Root {
+	var a, b, c tree.Root
+	copy(a[:], s[0:32])
+	copy(b[:], s[32:64])
+	copy(c[:], s[64:96])
+
+	return hFn.HashTreeProof(index, a, b, c)
+}
+
 func (p BLSSignature) MarshalText() ([]byte, error) {
 	return []byte("0x" + hex.EncodeToString(p[:])), nil
 }
@@ -198,6 +214,10 @@ func (dt BLSDomainType) HashTreeRoot(hFn tree.HashFn) Root {
 	return out
 }
 
+func (dt BLSDomainType) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []Root {
+	return nil
+}
+
 func (dt *BLSDomainType) UnmarshalText(text []byte) error {
 	if dt == nil {
 		return errors.New("cannot decode into nil BLSDomainType")
@@ -242,6 +262,10 @@ func (dom BLSDomain) HashTreeRoot(hFn tree.HashFn) Root {
 	return Root(dom) // just convert to root type (no hashing involved)
 }
 
+func (dom BLSDomain) HashTreeProof(_ tree.HashFn, _ tree.Gindex) []Root {
+	return nil
+}
+
 func (dom BLSDomain) String() string {
 	return "0x" + hex.EncodeToString(dom[:])
 }
@@ -281,6 +305,10 @@ func (a *SigningData) FixedLength() uint64 {
 
 func (d *SigningData) HashTreeRoot(hFn tree.HashFn) Root {
 	return hFn.HashTreeRoot(d.ObjectRoot, d.Domain)
+}
+
+func (d *SigningData) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []Root {
+	return hFn.HashTreeProof(index, d.ObjectRoot, d.Domain)
 }
 
 func ComputeSigningRoot(msgRoot Root, dom BLSDomain) Root {

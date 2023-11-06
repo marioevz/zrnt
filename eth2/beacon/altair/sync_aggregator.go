@@ -45,3 +45,11 @@ func (sd *SyncAggregatorSelectionData) HashTreeRoot(hFn tree.HashFn) common.Root
 		&sd.SubcommitteeIndex,
 	)
 }
+
+func (sd *SyncAggregatorSelectionData) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []common.Root {
+	return hFn.HashTreeProof(
+		index,
+		&sd.Slot,
+		&sd.SubcommitteeIndex,
+	)
+}

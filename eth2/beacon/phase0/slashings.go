@@ -46,6 +46,12 @@ func (li SlashingsHistory) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) comm
 	}, uint64(len(li)))
 }
 
+func (li SlashingsHistory) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	return hFn.Uint64VectorHTP(func(i uint64) uint64 {
+		return uint64(li[i])
+	}, uint64(len(li)), index)
+}
+
 // Balances slashed at every withdrawal period
 func SlashingsType(spec *common.Spec) VectorTypeDef {
 	return VectorType(common.GweiType, uint64(spec.EPOCHS_PER_SLASHINGS_VECTOR))

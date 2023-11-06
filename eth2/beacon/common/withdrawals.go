@@ -63,6 +63,10 @@ func (t WithdrawalIndex) HashTreeRoot(hFn tree.HashFn) Root {
 	return Uint64View(t).HashTreeRoot(hFn)
 }
 
+func (t WithdrawalIndex) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []Root {
+	return Uint64View(t).HashTreeProof(hFn, index)
+}
+
 func (e WithdrawalIndex) MarshalJSON() ([]byte, error) {
 	return Uint64View(e).MarshalJSON()
 }
@@ -166,6 +170,10 @@ func (s *Withdrawal) HashTreeRoot(hFn tree.HashFn) Root {
 	return hFn.HashTreeRoot(&s.Index, &s.ValidatorIndex, &s.Address, &s.Amount)
 }
 
+func (s *Withdrawal) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []Root {
+	return hFn.HashTreeProof(index, &s.Index, &s.ValidatorIndex, &s.Address, &s.Amount)
+}
+
 func WithdrawalsType(spec *Spec) ListTypeDef {
 	return ListType(WithdrawalType, uint64(spec.MAX_WITHDRAWALS_PER_PAYLOAD))
 }
@@ -202,6 +210,16 @@ func (ws Withdrawals) HashTreeRoot(spec *Spec, hFn tree.HashFn) Root {
 		}
 		return nil
 	}, length, uint64(spec.MAX_WITHDRAWALS_PER_PAYLOAD))
+}
+
+func (ws Withdrawals) HashTreeProof(spec *Spec, hFn tree.HashFn, index tree.Gindex) []Root {
+	length := uint64(len(ws))
+	return hFn.ComplexListHTP(func(i uint64) tree.HTP {
+		if i < length {
+			return &ws[i]
+		}
+		return nil
+	}, length, uint64(spec.MAX_WITHDRAWALS_PER_PAYLOAD), index)
 }
 
 var BLSToExecutionChangeType = ContainerType("BLSToExecutionChange", []FieldDef{
@@ -287,6 +305,10 @@ func (s *BLSToExecutionChange) HashTreeRoot(hFn tree.HashFn) Root {
 	return hFn.HashTreeRoot(&s.ValidatorIndex, &s.FromBLSPubKey, &s.ToExecutionAddress)
 }
 
+func (s *BLSToExecutionChange) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []Root {
+	return hFn.HashTreeProof(index, &s.ValidatorIndex, &s.FromBLSPubKey, &s.ToExecutionAddress)
+}
+
 var SignedBLSToExecutionChangeType = ContainerType("SignedBLSToExecutionChange", []FieldDef{
 	{"message", BLSToExecutionChangeType},
 	{"signature", BLSSignatureType},
@@ -365,6 +387,10 @@ func (s *SignedBLSToExecutionChange) HashTreeRoot(hFn tree.HashFn) Root {
 	return hFn.HashTreeRoot(&s.BLSToExecutionChange, &s.Signature)
 }
 
+func (s *SignedBLSToExecutionChange) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []Root {
+	return hFn.HashTreeProof(index, &s.BLSToExecutionChange, &s.Signature)
+}
+
 func BlockSignedBLSToExecutionChangesType(spec *Spec) ListTypeDef {
 	return ListType(SignedBLSToExecutionChangeType, uint64(spec.MAX_BLS_TO_EXECUTION_CHANGES))
 }
@@ -401,4 +427,14 @@ func (li SignedBLSToExecutionChanges) HashTreeRoot(spec *Spec, hFn tree.HashFn) 
 		}
 		return nil
 	}, length, uint64(spec.MAX_BLS_TO_EXECUTION_CHANGES))
+}
+
+func (li SignedBLSToExecutionChanges) HashTreeProof(spec *Spec, hFn tree.HashFn, index tree.Gindex) []Root {
+	length := uint64(len(li))
+	return hFn.ComplexListHTP(func(i uint64) tree.HTP {
+		if i < length {
+			return &li[i]
+		}
+		return nil
+	}, length, uint64(spec.MAX_BLS_TO_EXECUTION_CHANGES), index)
 }

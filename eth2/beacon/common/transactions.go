@@ -52,6 +52,16 @@ func (txs PayloadTransactions) HashTreeRoot(spec *Spec, hFn tree.HashFn) Root {
 	}, length, uint64(spec.MAX_TRANSACTIONS_PER_PAYLOAD))
 }
 
+func (txs PayloadTransactions) HashTreeProof(spec *Spec, hFn tree.HashFn, index tree.Gindex) []Root {
+	length := uint64(len(txs))
+	return hFn.ComplexListHTP(func(i uint64) tree.HTP {
+		if i < length {
+			return spec.Wrap(&txs[i])
+		}
+		return nil
+	}, length, uint64(spec.MAX_TRANSACTIONS_PER_PAYLOAD), index)
+}
+
 func TransactionType(spec *Spec) *BasicListTypeDef {
 	return BasicListType(Uint8Type, uint64(spec.MAX_BYTES_PER_TRANSACTION))
 }
@@ -76,6 +86,10 @@ func (otx *Transaction) FixedLength(*Spec) uint64 {
 
 func (otx Transaction) HashTreeRoot(spec *Spec, hFn tree.HashFn) Root {
 	return hFn.ByteListHTR(otx, uint64(spec.MAX_BYTES_PER_TRANSACTION))
+}
+
+func (otx Transaction) HashTreeProof(spec *Spec, hFn tree.HashFn, index tree.Gindex) []Root {
+	return hFn.ByteListHTP(otx, uint64(spec.MAX_BYTES_PER_TRANSACTION), index)
 }
 
 func (otx Transaction) MarshalText() ([]byte, error) {

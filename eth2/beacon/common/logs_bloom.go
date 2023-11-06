@@ -80,6 +80,16 @@ func (s *LogsBloom) HashTreeRoot(hFn tree.HashFn) tree.Root {
 	return hFn(hFn(a, b), hFn(c, d))
 }
 
+func (s *LogsBloom) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []tree.Root {
+	var bottom []tree.HTP
+	for i := 0; i < 8; i++ {
+		leaf := tree.Root{}
+		copy(leaf[:], s[i<<5:(i+1)<<5])
+		bottom = append(bottom, leaf)
+	}
+	return hFn.HashTreeProof(index, bottom...)
+}
+
 func (p *LogsBloom) MarshalText() ([]byte, error) {
 	return conv.BytesMarshalText(p[:])
 }

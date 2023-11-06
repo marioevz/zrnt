@@ -50,6 +50,10 @@ func (b *SignedBeaconBlock) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) com
 	return hFn.HashTreeRoot(spec.Wrap(&b.Message), b.Signature)
 }
 
+func (b *SignedBeaconBlock) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	return hFn.HashTreeProof(index, spec.Wrap(&b.Message), b.Signature)
+}
+
 func (block *SignedBeaconBlock) SignedHeader(spec *common.Spec) *common.SignedBeaconBlockHeader {
 	return &common.SignedBeaconBlockHeader{
 		Message:   *block.Message.Header(spec),
@@ -83,6 +87,10 @@ func (a *BeaconBlock) FixedLength(*common.Spec) uint64 {
 
 func (b *BeaconBlock) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) common.Root {
 	return hFn.HashTreeRoot(b.Slot, b.ProposerIndex, b.ParentRoot, b.StateRoot, spec.Wrap(&b.Body))
+}
+
+func (b *BeaconBlock) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	return hFn.HashTreeProof(index, b.Slot, b.ProposerIndex, b.ParentRoot, b.StateRoot, spec.Wrap(&b.Body))
 }
 
 func BeaconBlockType(spec *common.Spec) *ContainerTypeDef {
@@ -175,6 +183,17 @@ func (b *BeaconBlockBody) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) commo
 		spec.Wrap(&b.Deposits), spec.Wrap(&b.VoluntaryExits),
 		spec.Wrap(&b.SyncAggregate), spec.Wrap(&b.ExecutionPayload),
 		spec.Wrap(&b.BLSToExecutionChanges),
+	)
+}
+
+func (b *BeaconBlockBody) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	return hFn.HashTreeProof(
+		index,
+		b.RandaoReveal, &b.Eth1Data,
+		b.Graffiti, spec.Wrap(&b.ProposerSlashings),
+		spec.Wrap(&b.AttesterSlashings), spec.Wrap(&b.Attestations),
+		spec.Wrap(&b.Deposits), spec.Wrap(&b.VoluntaryExits),
+		spec.Wrap(&b.SyncAggregate), spec.Wrap(&b.ExecutionPayload), spec.Wrap(&b.BLSToExecutionChanges),
 	)
 }
 
@@ -304,6 +323,18 @@ func (b *BeaconBlockBodyShallow) HashTreeRoot(spec *common.Spec, hFn tree.HashFn
 	)
 }
 
+func (b *BeaconBlockBodyShallow) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	return hFn.HashTreeProof(
+		index,
+		b.RandaoReveal, &b.Eth1Data,
+		b.Graffiti, spec.Wrap(&b.ProposerSlashings),
+		spec.Wrap(&b.AttesterSlashings), spec.Wrap(&b.Attestations),
+		spec.Wrap(&b.Deposits), spec.Wrap(&b.VoluntaryExits),
+		spec.Wrap(&b.SyncAggregate), b.ExecutionPayloadRoot,
+		spec.Wrap(&b.BLSToExecutionChanges),
+	)
+}
+
 func (b *BeaconBlockBodyShallow) WithExecutionPayload(spec *common.Spec, payload ExecutionPayload) (*BeaconBlockBody, error) {
 	payloadRoot := payload.HashTreeRoot(spec, tree.GetHashFn())
 	if b.ExecutionPayloadRoot != payloadRoot {
@@ -408,6 +439,18 @@ func (b *BlindedBeaconBlockBody) HashTreeRoot(spec *common.Spec, hFn tree.HashFn
 	)
 }
 
+func (b *BlindedBeaconBlockBody) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	return hFn.HashTreeProof(
+		index,
+		b.RandaoReveal, &b.Eth1Data,
+		b.Graffiti, spec.Wrap(&b.ProposerSlashings),
+		spec.Wrap(&b.AttesterSlashings), spec.Wrap(&b.Attestations),
+		spec.Wrap(&b.Deposits), spec.Wrap(&b.VoluntaryExits),
+		spec.Wrap(&b.SyncAggregate), &b.ExecutionPayloadHeader,
+		spec.Wrap(&b.BLSToExecutionChanges),
+	)
+}
+
 func (b *BlindedBeaconBlockBody) Unblind(spec *common.Spec, payload *ExecutionPayload) (*BeaconBlockBody, error) {
 	if payload == nil {
 		return nil, fmt.Errorf("cannot unblind with nil payload")
@@ -460,6 +503,10 @@ func (b *BlindedBeaconBlock) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) co
 	return hFn.HashTreeRoot(b.Slot, b.ProposerIndex, b.ParentRoot, b.StateRoot, spec.Wrap(&b.Body))
 }
 
+func (b *BlindedBeaconBlock) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	return hFn.HashTreeProof(index, b.Slot, b.ProposerIndex, b.ParentRoot, b.StateRoot, spec.Wrap(&b.Body))
+}
+
 func (b *BlindedBeaconBlock) Unblind(spec *common.Spec, payload *ExecutionPayload) (*BeaconBlock, error) {
 	unblindedBody, err := b.Body.Unblind(spec, payload)
 	if err != nil {
@@ -507,4 +554,8 @@ func (a *SignedBlindedBeaconBlock) FixedLength(*common.Spec) uint64 {
 
 func (b *SignedBlindedBeaconBlock) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) common.Root {
 	return hFn.HashTreeRoot(spec.Wrap(&b.Message), b.Signature)
+}
+
+func (b *SignedBlindedBeaconBlock) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	return hFn.HashTreeProof(index, spec.Wrap(&b.Message), b.Signature)
 }

@@ -34,6 +34,10 @@ func (a *PendingAttestation) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) co
 	return hFn.HashTreeRoot(spec.Wrap(&a.AggregationBits), &a.Data, a.InclusionDelay, a.ProposerIndex)
 }
 
+func (a *PendingAttestation) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	return hFn.HashTreeProof(index, spec.Wrap(&a.AggregationBits), &a.Data, a.InclusionDelay, a.ProposerIndex)
+}
+
 func (att *PendingAttestation) View(spec *common.Spec) *PendingAttestationView {
 	bits := att.AggregationBits.View(spec)
 	t := ContainerType("PendingAttestation", []FieldDef{
@@ -81,6 +85,10 @@ func (*AttestationData) FixedLength() uint64 {
 
 func (p *AttestationData) HashTreeRoot(hFn tree.HashFn) common.Root {
 	return hFn.HashTreeRoot(p.Slot, p.Index, p.BeaconBlockRoot, &p.Source, &p.Target)
+}
+
+func (p *AttestationData) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []common.Root {
+	return hFn.HashTreeProof(index, p.Slot, p.Index, p.BeaconBlockRoot, &p.Source, &p.Target)
 }
 
 func (data *AttestationData) View() *AttestationDataView {
@@ -216,6 +224,16 @@ func (li PendingAttestations) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) c
 		}
 		return nil
 	}, length, uint64(spec.MAX_ATTESTATIONS)*uint64(spec.SLOTS_PER_EPOCH))
+}
+
+func (li PendingAttestations) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	length := uint64(len(li))
+	return hFn.ComplexListHTP(func(i uint64) tree.HTP {
+		if i < length {
+			return spec.Wrap(li[i])
+		}
+		return nil
+	}, length, uint64(spec.MAX_ATTESTATIONS)*uint64(spec.SLOTS_PER_EPOCH), index)
 }
 
 func PendingAttestationsType(spec *common.Spec) ListTypeDef {

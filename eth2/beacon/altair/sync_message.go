@@ -74,6 +74,16 @@ func (msg *SyncCommitteeMessage) HashTreeRoot(hFn tree.HashFn) common.Root {
 	)
 }
 
+func (msg *SyncCommitteeMessage) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []common.Root {
+	return hFn.HashTreeProof(
+		index,
+		&msg.Slot,
+		msg.BeaconBlockRoot,
+		&msg.ValidatorIndex,
+		&msg.Signature,
+	)
+}
+
 func (msg *SyncCommitteeMessage) VerifySignature(spec *common.Spec, epc *common.EpochsContext, domFn common.BLSDomainFn) error {
 	pub, ok := epc.ValidatorPubkeyCache.Pubkey(msg.ValidatorIndex)
 	if !ok {

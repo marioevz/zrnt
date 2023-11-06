@@ -38,6 +38,13 @@ func (li GweiList) HashTreeRoot(spec *Spec, hFn tree.HashFn) Root {
 	}, length, uint64(spec.VALIDATOR_REGISTRY_LIMIT))
 }
 
+func (li GweiList) HashTreeProof(spec *Spec, hFn tree.HashFn, index tree.Gindex) []Root {
+	length := uint64(len(li))
+	return hFn.Uint64ListHTP(func(i uint64) uint64 {
+		return uint64(li[i])
+	}, length, uint64(spec.VALIDATOR_REGISTRY_LIMIT), index)
+}
+
 type Deltas struct {
 	Rewards   GweiList `json:"rewards" yaml:"rewards"`
 	Penalties GweiList `json:"penalties" yaml:"penalties"`
@@ -61,6 +68,10 @@ func (a *Deltas) FixedLength(*Spec) uint64 {
 
 func (a *Deltas) HashTreeRoot(spec *Spec, hFn tree.HashFn) Root {
 	return hFn.HashTreeRoot(spec.Wrap(&a.Rewards), spec.Wrap(&a.Penalties))
+}
+
+func (a *Deltas) HashTreeProof(spec *Spec, hFn tree.HashFn, index tree.Gindex) []Root {
+	return hFn.HashTreeProof(index, spec.Wrap(&a.Rewards), spec.Wrap(&a.Penalties))
 }
 
 func NewDeltas(validatorCount uint64) *Deltas {

@@ -44,6 +44,11 @@ func (v *Validator) HashTreeRoot(hFn tree.HashFn) common.Root {
 		v.ActivationEligibilityEpoch, v.ActivationEpoch, v.ExitEpoch, v.WithdrawableEpoch)
 }
 
+func (v *Validator) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []common.Root {
+	return hFn.HashTreeProof(index, v.Pubkey, v.WithdrawalCredentials, v.EffectiveBalance, (BoolView)(v.Slashed),
+		v.ActivationEligibilityEpoch, v.ActivationEpoch, v.ExitEpoch, v.WithdrawableEpoch)
+}
+
 func (v *Validator) View() *ValidatorView {
 	wCred := RootView(v.WithdrawalCredentials)
 	c, _ := ValidatorType.FromFields(

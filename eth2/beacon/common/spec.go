@@ -208,6 +208,7 @@ type SpecObj interface {
 	Serialize(spec *Spec, w *codec.EncodingWriter) error
 	ByteLength(spec *Spec) uint64
 	HashTreeRoot(spec *Spec, h tree.HashFn) Root
+	HashTreeProof(spec *Spec, h tree.HashFn, gindex tree.Gindex) []tree.Root
 	FixedLength(spec *Spec) uint64
 }
 
@@ -215,7 +216,7 @@ type SSZObj interface {
 	codec.Serializable
 	codec.Deserializable
 	codec.FixedLength
-	tree.HTR
+	tree.HTP
 }
 
 type WrappedSpecObj interface {
@@ -242,6 +243,10 @@ func (s *specObj) ByteLength() uint64 {
 
 func (s *specObj) HashTreeRoot(h tree.HashFn) Root {
 	return s.des.HashTreeRoot(s.spec, h)
+}
+
+func (s *specObj) HashTreeProof(h tree.HashFn, index tree.Gindex) []Root {
+	return s.des.HashTreeProof(s.spec, h, index)
 }
 
 func (s *specObj) FixedLength() uint64 {

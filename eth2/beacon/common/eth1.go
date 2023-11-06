@@ -55,6 +55,10 @@ func (addr *Eth1Address) HashTreeRoot(hFn tree.HashFn) tree.Root {
 	return out
 }
 
+func (addr *Eth1Address) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []tree.Root {
+	return nil
+}
+
 func (addr Eth1Address) MarshalText() ([]byte, error) {
 	return conv.BytesMarshalText(addr[:])
 }
@@ -95,6 +99,10 @@ func (a *Eth1Data) FixedLength() uint64 {
 
 func (b *Eth1Data) HashTreeRoot(hFn tree.HashFn) Root {
 	return hFn.HashTreeRoot(b.DepositRoot, b.DepositCount, b.BlockHash)
+}
+
+func (b *Eth1Data) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []Root {
+	return hFn.HashTreeProof(index, b.DepositRoot, b.DepositCount, b.BlockHash)
 }
 
 func (dat *Eth1Data) View() *Eth1DataView {

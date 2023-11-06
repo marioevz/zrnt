@@ -43,6 +43,16 @@ func (li RandaoMixes) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) common.Ro
 	}, length)
 }
 
+func (li RandaoMixes) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	length := uint64(len(li))
+	return hFn.ComplexVectorHTP(func(i uint64) tree.HTP {
+		if i < length {
+			return li[i]
+		}
+		return nil
+	}, length, index)
+}
+
 func RandaoMixesType(spec *common.Spec) VectorTypeDef {
 	return VectorType(common.Bytes32Type, uint64(spec.EPOCHS_PER_HISTORICAL_VECTOR))
 }

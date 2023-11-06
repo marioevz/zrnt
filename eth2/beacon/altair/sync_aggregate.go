@@ -58,6 +58,14 @@ func (agg *SyncAggregate) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) commo
 	)
 }
 
+func (agg *SyncAggregate) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	return hFn.HashTreeProof(
+		index,
+		spec.Wrap(&agg.SyncCommitteeBits),
+		&agg.SyncCommitteeSignature,
+	)
+}
+
 type SyncAggregateView struct {
 	*ContainerView
 }

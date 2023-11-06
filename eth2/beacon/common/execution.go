@@ -42,6 +42,10 @@ func (otx ExtraData) HashTreeRoot(hFn tree.HashFn) Root {
 	return hFn.ByteListHTR(otx, MAX_EXTRA_DATA_BYTES)
 }
 
+func (otx ExtraData) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []Root {
+	return hFn.ByteListHTP(otx, MAX_EXTRA_DATA_BYTES, index)
+}
+
 func (otx ExtraData) MarshalText() ([]byte, error) {
 	return conv.BytesMarshalText(otx[:])
 }

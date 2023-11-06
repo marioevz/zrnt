@@ -43,6 +43,10 @@ func (i BlobIndex) HashTreeRoot(hFn tree.HashFn) tree.Root {
 	return Uint64View(i).HashTreeRoot(hFn)
 }
 
+func (i BlobIndex) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []tree.Root {
+	return Uint64View(i).HashTreeProof(hFn, index)
+}
+
 func (e BlobIndex) MarshalJSON() ([]byte, error) {
 	return Uint64View(e).MarshalJSON()
 }
@@ -96,6 +100,10 @@ func (p Blob) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) tree.Root {
 	return hFn.ByteVectorHTR(p[:])
 }
 
+func (p Blob) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []tree.Root {
+	return hFn.ByteVectorHTP(p[:], index)
+}
+
 func (p Blob) MarshalText() ([]byte, error) {
 	return []byte("0x" + hex.EncodeToString(p[:])), nil
 }
@@ -145,6 +153,16 @@ func (li Blobs) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) common.Root {
 		}
 		return nil
 	}, length, uint64(spec.MAX_BLOB_COMMITMENTS_PER_BLOCK))
+}
+
+func (li Blobs) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	length := uint64(len(li))
+	return hFn.ComplexListHTP(func(i uint64) tree.HTP {
+		if i < length {
+			return spec.Wrap(&li[i])
+		}
+		return nil
+	}, length, uint64(spec.MAX_BLOB_COMMITMENTS_PER_BLOCK), index)
 }
 
 func (li Blobs) Roots(spec *common.Spec, hFn tree.HashFn) BlobRoots {
@@ -239,181 +257,217 @@ func (br BlobRoots) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) tree.Root {
 	}, length, uint64(spec.MAX_BLOB_COMMITMENTS_PER_BLOCK))
 }
 
+func (br BlobRoots) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []tree.Root {
+	length := uint64(len(br))
+	return hFn.ComplexListHTP(func(i uint64) tree.HTP {
+		if i < length {
+			return br[i]
+		}
+		return nil
+	}, length, uint64(spec.MAX_BLOB_COMMITMENTS_PER_BLOCK), index)
+}
+
+// KZGCommitmentInclusionProof is a Root vector of KZG_COMMITMENT_INCLUSION_PROOF_DEPTH length
+type KZGCommitmentInclusionProof []common.Root
+
+func (a *KZGCommitmentInclusionProof) Deserialize(spec *common.Spec, dr *codec.DecodingReader) error {
+	return tree.ReadRoots(dr, (*[]common.Root)(a), uint64(spec.KZG_COMMITMENT_INCLUSION_PROOF_DEPTH))
+}
+
+func (a KZGCommitmentInclusionProof) Serialize(spec *common.Spec, w *codec.EncodingWriter) error {
+	return tree.WriteRoots(w, a)
+}
+
+func (a KZGCommitmentInclusionProof) ByteLength(spec *common.Spec) (out uint64) {
+	return uint64(spec.KZG_COMMITMENT_INCLUSION_PROOF_DEPTH) * 32
+}
+
+func (a *KZGCommitmentInclusionProof) FixedLength(spec *common.Spec) uint64 {
+	return uint64(spec.KZG_COMMITMENT_INCLUSION_PROOF_DEPTH) * 32
+}
+
+func (li KZGCommitmentInclusionProof) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) common.Root {
+	length := uint64(len(li))
+	return hFn.ComplexVectorHTR(func(i uint64) tree.HTR {
+		if i < length {
+			return &li[i]
+		}
+		return nil
+	}, length)
+}
+
+func (li KZGCommitmentInclusionProof) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	length := uint64(len(li))
+	return hFn.ComplexVectorHTP(func(i uint64) tree.HTP {
+		if i < length {
+			return li[i]
+		}
+		return nil
+	}, length, index)
+}
+
+// KZGCommitmentInclusionProofs is a KZGCommitmentInclusionProof list of MAX_BLOBS_PER_BLOCK limit length
+type KZGCommitmentInclusionProofs []KZGCommitmentInclusionProof
+
+func (li *KZGCommitmentInclusionProofs) Deserialize(spec *common.Spec, dr *codec.DecodingReader) error {
+	return dr.List(func() codec.Deserializable {
+		i := len(*li)
+		*li = append(*li, KZGCommitmentInclusionProof{})
+		return spec.Wrap(&((*li)[i]))
+	}, uint64(spec.KZG_COMMITMENT_INCLUSION_PROOF_DEPTH)*32, uint64(spec.MAX_BLOBS_PER_BLOCK))
+}
+
+func (li KZGCommitmentInclusionProofs) Serialize(spec *common.Spec, w *codec.EncodingWriter) error {
+	return w.List(func(i uint64) codec.Serializable {
+		return spec.Wrap(&li[i])
+	}, uint64(spec.KZG_COMMITMENT_INCLUSION_PROOF_DEPTH)*32, uint64(len(li)))
+}
+
+func (li KZGCommitmentInclusionProofs) ByteLength(spec *common.Spec) (out uint64) {
+	return uint64(spec.KZG_COMMITMENT_INCLUSION_PROOF_DEPTH) * 32 * uint64(len(li))
+}
+
+func (li *KZGCommitmentInclusionProofs) FixedLength(spec *common.Spec) uint64 {
+	return 0
+}
+
+func (li KZGCommitmentInclusionProofs) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) common.Root {
+	length := uint64(len(li))
+	return hFn.ComplexVectorHTR(func(i uint64) tree.HTR {
+		if i < length {
+			return spec.Wrap(&li[i])
+		}
+		return nil
+	}, length)
+}
+
+func (li KZGCommitmentInclusionProofs) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	length := uint64(len(li))
+	return hFn.ComplexVectorHTP(func(i uint64) tree.HTP {
+		if i < length {
+			return spec.Wrap(&li[i])
+		}
+		return nil
+	}, length, index)
+}
+
+func KZGCommitmentInclusionProofType(spec *common.Spec) VectorTypeDef {
+	return VectorType(common.Bytes32Type, uint64(spec.KZG_COMMITMENT_INCLUSION_PROOF_DEPTH))
+}
+
 func BlobSidecarType(spec *common.Spec) *ContainerTypeDef {
 	return ContainerType("BlobSidecar", []FieldDef{
-		{"block_root", RootType},
 		{"index", Uint64Type},
-		{"slot", common.SlotType},
-		{"block_parent_root", RootType},
-		{"proposer_index", common.ValidatorIndexType},
 		{"blob", BlobType(spec)},
 		{"kzg_commitment", common.KZGCommitmentType},
 		{"kzg_proof", common.KZGProofType},
+		{"signed_block_header", common.SignedBeaconBlockHeaderType},
+		{"kzg_commitment_inclusion_proof", KZGCommitmentInclusionProofType(spec)},
 	})
 }
 
 type BlobSidecar struct {
-	BlockRoot       common.Root           `json:"block_root" yaml:"block_root"`
-	Index           BlobIndex             `json:"index" yaml:"index"`
-	Slot            common.Slot           `json:"slot" yaml:"slot"`
-	BlockParentRoot common.Root           `json:"block_parent_root" yaml:"block_parent_root"`
-	ProposerIndex   common.ValidatorIndex `json:"proposer_index" yaml:"proposer_index"`
-	Blob            Blob                  `json:"blob" yaml:"blob"`
-	KZGCommitment   common.KZGCommitment  `json:"kzg_commitment" yaml:"kzg_commitment"`
-	KZGProof        common.KZGProof       `json:"kzg_proof" yaml:"kzg_proof"`
+	Index                       BlobIndex                      `json:"index" yaml:"index"`
+	Blob                        Blob                           `json:"blob" yaml:"blob"`
+	KZGCommitment               common.KZGCommitment           `json:"kzg_commitment" yaml:"kzg_commitment"`
+	KZGProof                    common.KZGProof                `json:"kzg_proof" yaml:"kzg_proof"`
+	SignedBlockHeader           common.SignedBeaconBlockHeader `json:"signed_block_header" yaml:"signed_block_header"`
+	KZGCommitmentInclusionProof KZGCommitmentInclusionProof    `json:"kzg_commitment_inclusion_proof" yaml:"kzg_commitment_inclusion_proof"`
 }
 
 func (b *BlobSidecar) Deserialize(spec *common.Spec, dr *codec.DecodingReader) error {
-	return dr.Container(&b.BlockRoot, &b.Index, &b.Slot, &b.BlockParentRoot, &b.ProposerIndex, spec.Wrap(&b.Blob), &b.KZGCommitment, &b.KZGProof)
+	return dr.Container(&b.Index, spec.Wrap(&b.Blob), &b.KZGCommitment, &b.KZGProof, &b.SignedBlockHeader, spec.Wrap(&b.KZGCommitmentInclusionProof))
 }
 
 func (b *BlobSidecar) Serialize(spec *common.Spec, w *codec.EncodingWriter) error {
-	return w.Container(&b.BlockRoot, &b.Index, &b.Slot, &b.BlockParentRoot, &b.ProposerIndex, spec.Wrap(&b.Blob), &b.KZGCommitment, &b.KZGProof)
+	return w.Container(&b.Index, spec.Wrap(&b.Blob), &b.KZGCommitment, &b.KZGProof, &b.SignedBlockHeader, spec.Wrap(&b.KZGCommitmentInclusionProof))
 }
 
 func (b *BlobSidecar) ByteLength(spec *common.Spec) uint64 {
-	return codec.ContainerLength(&b.BlockRoot, &b.Index, &b.Slot, &b.BlockParentRoot, &b.ProposerIndex, spec.Wrap(&b.Blob), &b.KZGCommitment, &b.KZGProof)
+	return codec.ContainerLength(&b.Index, spec.Wrap(&b.Blob), &b.KZGCommitment, &b.KZGProof, &b.SignedBlockHeader, spec.Wrap(&b.KZGCommitmentInclusionProof))
 }
 
 func (b *BlobSidecar) FixedLength(spec *common.Spec) uint64 {
-	return codec.ContainerLength(&b.BlockRoot, &b.Index, &b.Slot, &b.BlockParentRoot, &b.ProposerIndex, spec.Wrap(&b.Blob), &b.KZGCommitment, &b.KZGProof)
+	return codec.ContainerLength(&b.Index, spec.Wrap(&b.Blob), &b.KZGCommitment, &b.KZGProof, &b.SignedBlockHeader, spec.Wrap(&b.KZGCommitmentInclusionProof))
 }
 
 func (b *BlobSidecar) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) common.Root {
 	return hFn.HashTreeRoot(
-		&b.BlockRoot,
 		&b.Index,
-		&b.Slot,
-		&b.BlockParentRoot,
-		&b.ProposerIndex,
 		spec.Wrap(&b.Blob),
 		&b.KZGCommitment,
 		&b.KZGProof,
+		&b.SignedBlockHeader,
+		spec.Wrap(&b.KZGCommitmentInclusionProof),
 	)
 }
 
-type SignedBlobSidecar struct {
-	Message   BlobSidecar         `json:"message" yaml:"message"`
-	Signature common.BLSSignature `json:"signature" yaml:"signature"`
-}
-
-func (b *SignedBlobSidecar) Deserialize(spec *common.Spec, dr *codec.DecodingReader) error {
-	return dr.Container(spec.Wrap(&b.Message), &b.Signature)
-}
-
-func (b *SignedBlobSidecar) Serialize(spec *common.Spec, w *codec.EncodingWriter) error {
-	return w.Container(spec.Wrap(&b.Message), &b.Signature)
-}
-
-func (b *SignedBlobSidecar) ByteLength(spec *common.Spec) uint64 {
-	return codec.ContainerLength(spec.Wrap(&b.Message), &b.Signature)
-}
-
-func (b *SignedBlobSidecar) FixedLength(spec *common.Spec) uint64 {
-	return codec.ContainerLength(spec.Wrap(&b.Message), &b.Signature)
-}
-
-func (b *SignedBlobSidecar) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) common.Root {
-	return hFn.HashTreeRoot(spec.Wrap(&b.Message), &b.Signature)
-}
-
-var BlindedBlobSidecarType = ContainerType("BlindedBlobSidecar", []FieldDef{
-	{"block_root", RootType},
-	{"index", Uint64Type},
-	{"slot", common.SlotType},
-	{"block_parent_root", RootType},
-	{"proposer_index", common.ValidatorIndexType},
-	{"blob_root", RootType},
-	{"kzg_commitment", common.KZGCommitmentType},
-	{"kzg_proof", common.KZGProofType},
-})
-
-type BlindedBlobSidecar struct {
-	BlockRoot       common.Root           `json:"block_root" yaml:"block_root"`
-	Index           BlobIndex             `json:"index" yaml:"index"`
-	Slot            common.Slot           `json:"slot" yaml:"slot"`
-	BlockParentRoot common.Root           `json:"block_parent_root" yaml:"block_parent_root"`
-	ProposerIndex   common.ValidatorIndex `json:"proposer_index" yaml:"proposer_index"`
-	BlobRoot        common.Root           `json:"blob_root" yaml:"blob_root"`
-	KZGCommitment   common.KZGCommitment  `json:"kzg_commitment" yaml:"kzg_commitment"`
-	KZGProof        common.KZGProof       `json:"kzg_proof" yaml:"kzg_proof"`
-}
-
-func (b *BlindedBlobSidecar) Deserialize(dr *codec.DecodingReader) error {
-	return dr.Container(&b.BlockRoot, &b.Index, &b.Slot, &b.BlockParentRoot, &b.ProposerIndex, &b.BlobRoot, &b.KZGCommitment, &b.KZGProof)
-}
-
-func (b *BlindedBlobSidecar) Serialize(w *codec.EncodingWriter) error {
-	return w.Container(&b.BlockRoot, &b.Index, &b.Slot, &b.BlockParentRoot, &b.ProposerIndex, &b.BlobRoot, &b.KZGCommitment, &b.KZGProof)
-}
-
-func (b *BlindedBlobSidecar) ByteLength() uint64 {
-	return codec.ContainerLength(&b.BlockRoot, &b.Index, &b.Slot, &b.BlockParentRoot, &b.ProposerIndex, &b.BlobRoot, &b.KZGCommitment, &b.KZGProof)
-}
-
-func (b *BlindedBlobSidecar) FixedLength() uint64 {
-	return codec.ContainerLength(&b.BlockRoot, &b.Index, &b.Slot, &b.BlockParentRoot, &b.ProposerIndex, &b.BlobRoot, &b.KZGCommitment, &b.KZGProof)
-}
-
-func (b *BlindedBlobSidecar) HashTreeRoot(hFn tree.HashFn) common.Root {
-	return hFn.HashTreeRoot(
-		&b.BlockRoot,
+func (b *BlobSidecar) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	return hFn.HashTreeProof(
+		index,
 		&b.Index,
-		&b.Slot,
-		&b.BlockParentRoot,
-		&b.ProposerIndex,
-		&b.BlobRoot,
+		spec.Wrap(&b.Blob),
 		&b.KZGCommitment,
 		&b.KZGProof,
+		&b.SignedBlockHeader,
+		spec.Wrap(&b.KZGCommitmentInclusionProof),
 	)
 }
 
-func (b *BlindedBlobSidecar) Unblind(blob *Blob) *BlobSidecar {
-	return &BlobSidecar{
-		BlockRoot:       b.BlockRoot,
-		Index:           b.Index,
-		Slot:            b.Slot,
-		BlockParentRoot: b.BlockParentRoot,
-		ProposerIndex:   b.ProposerIndex,
-		Blob:            *blob,
-		KZGCommitment:   b.KZGCommitment,
-		KZGProof:        b.KZGProof,
+func (b *BlobSidecar) IncludeProof(spec *common.Spec, hFn tree.HashFn, beaconBlockBody BeaconBlockBody) error {
+	bodyGindex, err := tree.ToGindex64(_blob_kzg_commitments, tree.CoverDepth(_beacon_block_body_length))
+	if err != nil {
+		return err
 	}
-}
-
-var SignedBlindedBlobSidecarType = ContainerType("SignedBlindedBlobSidecar", []FieldDef{
-	{"message", BlindedBlobSidecarType},
-	{"signature", common.BLSSignatureType},
-})
-
-type SignedBlindedBlobSidecar struct {
-	Message   BlindedBlobSidecar  `json:"message" yaml:"message"`
-	Signature common.BLSSignature `json:"signature" yaml:"signature"`
-}
-
-func (b *SignedBlindedBlobSidecar) Deserialize(dr *codec.DecodingReader) error {
-	return dr.Container(&b.Message, &b.Signature)
-}
-
-func (b *SignedBlindedBlobSidecar) Serialize(w *codec.EncodingWriter) error {
-	return w.Container(&b.Message, &b.Signature)
-}
-
-func (b *SignedBlindedBlobSidecar) ByteLength() uint64 {
-	return codec.ContainerLength(&b.Message, &b.Signature)
-}
-
-func (b *SignedBlindedBlobSidecar) FixedLength() uint64 {
-	return codec.ContainerLength(&b.Message, &b.Signature)
-}
-
-func (b *SignedBlindedBlobSidecar) HashTreeRoot(hFn tree.HashFn) common.Root {
-	return hFn.HashTreeRoot(&b.Message, &b.Signature)
-}
-
-func (b *SignedBlindedBlobSidecar) Unblind(blob *Blob) *SignedBlobSidecar {
-	return &SignedBlobSidecar{
-		Message:   *b.Message.Unblind(blob),
-		Signature: b.Signature,
+	bodyProof := beaconBlockBody.HashTreeProof(spec, hFn, bodyGindex)
+	if err != nil {
+		return err
 	}
+	if !bytes.Equal(bodyProof[0][:], b.SignedBlockHeader.Message.BodyRoot[:]) {
+		return fmt.Errorf("invalid body root")
+	}
+	kzgCommitmentGindex, err := tree.ToGindex64(uint64(b.Index), tree.CoverDepth(uint64(spec.MAX_BLOB_COMMITMENTS_PER_BLOCK)))
+	if err != nil {
+		return err
+	}
+	kzgCommitmentProof := beaconBlockBody.BlobKZGCommitments.HashTreeProof(spec, hFn, kzgCommitmentGindex)
+	if err != nil {
+		return err
+	}
+	b.KZGCommitmentInclusionProof = append(bodyProof[1:], kzgCommitmentProof[1:]...)
+	if len(b.KZGCommitmentInclusionProof) != int(spec.KZG_COMMITMENT_INCLUSION_PROOF_DEPTH) {
+		return fmt.Errorf("invalid KZG commitment inclusion proof length: %d", len(b.KZGCommitmentInclusionProof))
+	}
+	return nil
+}
+
+func (b *BlobSidecar) VerifyProof(spec *common.Spec, hFn tree.HashFn, beaconBlockBody BeaconBlockBody) error {
+	bodyGindex, err := tree.ToGindex64(_blob_kzg_commitments, tree.CoverDepth(_beacon_block_body_length))
+	if err != nil {
+		return err
+	}
+	bodyProof := beaconBlockBody.HashTreeProof(spec, hFn, bodyGindex)
+	if err != nil {
+		return err
+	}
+	if !bytes.Equal(bodyProof[0][:], b.SignedBlockHeader.Message.BodyRoot[:]) {
+		return fmt.Errorf("invalid body root")
+	}
+	kzgCommitmentGindex, err := tree.ToGindex64(uint64(b.Index), tree.CoverDepth(uint64(spec.MAX_BLOB_COMMITMENTS_PER_BLOCK)))
+	if err != nil {
+		return err
+	}
+	kzgCommitmentProof := beaconBlockBody.BlobKZGCommitments.HashTreeProof(spec, hFn, kzgCommitmentGindex)
+	if err != nil {
+		return err
+	}
+	if len(b.KZGCommitmentInclusionProof) != int(spec.KZG_COMMITMENT_INCLUSION_PROOF_DEPTH) {
+		return fmt.Errorf("invalid KZG commitment inclusion proof length: %d", len(b.KZGCommitmentInclusionProof))
+	}
+	for i := 0; i < len(b.KZGCommitmentInclusionProof); i++ {
+		if !bytes.Equal(b.KZGCommitmentInclusionProof[i][:], kzgCommitmentProof[i][:]) {
+			return fmt.Errorf("invalid KZG commitment inclusion proof")
+		}
+	}
+	return nil
 }

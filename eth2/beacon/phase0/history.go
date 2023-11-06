@@ -38,6 +38,16 @@ func (li HistoricalBatchRoots) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) 
 	}, length)
 }
 
+func (li HistoricalBatchRoots) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	length := uint64(len(li))
+	return hFn.ComplexVectorHTP(func(i uint64) tree.HTP {
+		if i < length {
+			return li[i]
+		}
+		return nil
+	}, length, index)
+}
+
 type HistoricalBatch struct {
 	BlockRoots HistoricalBatchRoots `json:"block_roots" yaml:"block_roots"`
 	StateRoots HistoricalBatchRoots `json:"state_roots" yaml:"state_roots"`
@@ -61,6 +71,10 @@ func (*HistoricalBatch) FixedLength(spec *common.Spec) uint64 {
 
 func (p *HistoricalBatch) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) common.Root {
 	return hFn.HashTreeRoot(spec.Wrap(&p.BlockRoots), spec.Wrap(&p.StateRoots))
+}
+
+func (p *HistoricalBatch) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	return hFn.HashTreeProof(index, spec.Wrap(&p.BlockRoots), spec.Wrap(&p.StateRoots))
 }
 
 func BatchRootsType(spec *common.Spec) VectorTypeDef {
@@ -135,6 +149,16 @@ func (li HistoricalRoots) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) commo
 		}
 		return nil
 	}, length, uint64(spec.HISTORICAL_ROOTS_LIMIT))
+}
+
+func (li HistoricalRoots) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	length := uint64(len(li))
+	return hFn.ComplexListHTP(func(i uint64) tree.HTP {
+		if i < length {
+			return li[i]
+		}
+		return nil
+	}, length, uint64(spec.HISTORICAL_ROOTS_LIMIT), index)
 }
 
 func HistoricalRootsType(spec *common.Spec) ListTypeDef {

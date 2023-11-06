@@ -44,6 +44,16 @@ func (li Eth1DataVotes) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) common.
 	}, length, uint64(spec.EPOCHS_PER_ETH1_VOTING_PERIOD)*uint64(spec.SLOTS_PER_EPOCH))
 }
 
+func (li Eth1DataVotes) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	length := uint64(len(li))
+	return hFn.ComplexListHTP(func(i uint64) tree.HTP {
+		if i < length {
+			return &li[i]
+		}
+		return nil
+	}, length, uint64(spec.EPOCHS_PER_ETH1_VOTING_PERIOD)*uint64(spec.SLOTS_PER_EPOCH), index)
+}
+
 func Eth1DataVotesType(spec *common.Spec) ListTypeDef {
 	return ListType(common.Eth1DataType, uint64(spec.EPOCHS_PER_ETH1_VOTING_PERIOD)*uint64(spec.SLOTS_PER_EPOCH))
 }

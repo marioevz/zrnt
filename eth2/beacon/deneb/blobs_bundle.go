@@ -50,12 +50,8 @@ func (bb *BlobsBundle) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) common.R
 	return hFn.HashTreeRoot(spec.Wrap(&bb.KZGCommitments), spec.Wrap(&bb.KZGProofs), spec.Wrap(&bb.Blobs))
 }
 
-func (bb *BlobsBundle) Blinded(spec *common.Spec, hFn tree.HashFn) *BlindedBlobsBundle {
-	return &BlindedBlobsBundle{
-		KZGCommitments: bb.KZGCommitments,
-		KZGProofs:      bb.KZGProofs,
-		BlobRoots:      bb.Blobs.Roots(spec, hFn),
-	}
+func (bb *BlobsBundle) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	return hFn.HashTreeProof(index, spec.Wrap(&bb.KZGCommitments), spec.Wrap(&bb.KZGProofs), spec.Wrap(&bb.Blobs))
 }
 
 func (bb *BlobsBundle) GetCommitments() *common.KZGCommitments {
@@ -68,50 +64,4 @@ func (bb *BlobsBundle) GetProofs() *common.KZGProofs {
 
 func (bb *BlobsBundle) GetBlobs() *Blobs {
 	return &bb.Blobs
-}
-
-func BlindedBlobsBundleType(spec *common.Spec) *ContainerTypeDef {
-	return ContainerType("BlindedBlobsBundle", []FieldDef{
-		{"commitments", common.KZGCommitmentsType(spec)},
-		{"proofs", common.KZGProofsType(spec)},
-		{"blob_roots", BlobRootsType(spec)},
-	})
-}
-
-type BlindedBlobsBundle struct {
-	KZGCommitments common.KZGCommitments `json:"commitments" yaml:"commitments"`
-	KZGProofs      common.KZGProofs      `json:"proofs" yaml:"proofs"`
-	BlobRoots      BlobRoots             `json:"blob_roots" yaml:"blob_roots"`
-}
-
-func (b *BlindedBlobsBundle) Deserialize(spec *common.Spec, dr *codec.DecodingReader) error {
-	return dr.Container(spec.Wrap(&b.KZGCommitments), spec.Wrap(&b.KZGProofs), spec.Wrap(&b.BlobRoots))
-}
-
-func (b *BlindedBlobsBundle) Serialize(spec *common.Spec, w *codec.EncodingWriter) error {
-	return w.Container(spec.Wrap(&b.KZGCommitments), spec.Wrap(&b.KZGProofs), spec.Wrap(&b.BlobRoots))
-}
-
-func (b *BlindedBlobsBundle) ByteLength(spec *common.Spec) uint64 {
-	return codec.ContainerLength(spec.Wrap(&b.KZGCommitments), spec.Wrap(&b.KZGProofs), spec.Wrap(&b.BlobRoots))
-}
-
-func (a *BlindedBlobsBundle) FixedLength(*common.Spec) uint64 {
-	return 0
-}
-
-func (bbb *BlindedBlobsBundle) GetCommitments() *common.KZGCommitments {
-	return &bbb.KZGCommitments
-}
-
-func (bbb *BlindedBlobsBundle) GetProofs() *common.KZGProofs {
-	return &bbb.KZGProofs
-}
-
-func (bbb *BlindedBlobsBundle) GetBlobRoots() *BlobRoots {
-	return &bbb.BlobRoots
-}
-
-func (b *BlindedBlobsBundle) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) common.Root {
-	return hFn.HashTreeRoot(spec.Wrap(&b.KZGCommitments), spec.Wrap(&b.KZGProofs), spec.Wrap(&b.BlobRoots))
 }

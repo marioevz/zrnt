@@ -39,6 +39,10 @@ func (p *ProposerSlashing) HashTreeRoot(hFn tree.HashFn) common.Root {
 	return hFn.HashTreeRoot(&p.SignedHeader1, &p.SignedHeader2)
 }
 
+func (p *ProposerSlashing) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []common.Root {
+	return hFn.HashTreeProof(index, &p.SignedHeader1, &p.SignedHeader2)
+}
+
 var ProposerSlashingType = ContainerType("ProposerSlashing", []FieldDef{
 	{"header_1", common.SignedBeaconBlockHeaderType},
 	{"header_2", common.SignedBeaconBlockHeaderType},
@@ -80,6 +84,16 @@ func (li ProposerSlashings) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) com
 		}
 		return nil
 	}, length, uint64(spec.MAX_PROPOSER_SLASHINGS))
+}
+
+func (li ProposerSlashings) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	length := uint64(len(li))
+	return hFn.ComplexListHTP(func(i uint64) tree.HTP {
+		if i < length {
+			return &li[i]
+		}
+		return nil
+	}, length, uint64(spec.MAX_PROPOSER_SLASHINGS), index)
 }
 
 func ProcessProposerSlashings(ctx context.Context, spec *common.Spec, epc *common.EpochsContext, state common.BeaconState, ops []ProposerSlashing) error {

@@ -48,6 +48,14 @@ func (p KZGCommitment) HashTreeRoot(hFn tree.HashFn) tree.Root {
 	return hFn(a, b)
 }
 
+func (p KZGCommitment) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []Root {
+	var a, b tree.Root
+	copy(a[:], p[0:32])
+	copy(b[:], p[32:48])
+
+	return hFn.HashTreeProof(index, a, b)
+}
+
 func (p KZGCommitment) MarshalText() ([]byte, error) {
 	return []byte("0x" + hex.EncodeToString(p[:])), nil
 }
@@ -132,6 +140,16 @@ func (li KZGCommitments) HashTreeRoot(spec *Spec, hFn tree.HashFn) Root {
 	}, length, uint64(spec.MAX_BLOB_COMMITMENTS_PER_BLOCK))
 }
 
+func (li KZGCommitments) HashTreeProof(spec *Spec, hFn tree.HashFn, index tree.Gindex) []Root {
+	length := uint64(len(li))
+	return hFn.ComplexListHTP(func(i uint64) tree.HTP {
+		if i < length {
+			return &li[i]
+		}
+		return nil
+	}, length, uint64(spec.MAX_BLOB_COMMITMENTS_PER_BLOCK), index)
+}
+
 func KZGCommitmentsType(spec *Spec) *ComplexListTypeDef {
 	return ComplexListType(KZGCommitmentType, uint64(spec.MAX_BLOB_COMMITMENTS_PER_BLOCK))
 }
@@ -207,6 +225,13 @@ func (p KZGProof) HashTreeRoot(hFn tree.HashFn) tree.Root {
 	return hFn(a, b)
 }
 
+func (p KZGProof) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []tree.Root {
+	var a, b tree.Root
+	copy(a[:], p[0:32])
+	copy(b[:], p[32:48])
+	return hFn.HashTreeProof(index, a, b)
+}
+
 func (p KZGProof) MarshalText() ([]byte, error) {
 	return []byte("0x" + hex.EncodeToString(p[:])), nil
 }
@@ -275,6 +300,16 @@ func (li KZGProofs) HashTreeRoot(spec *Spec, hFn tree.HashFn) Root {
 		}
 		return nil
 	}, length, uint64(spec.MAX_BLOB_COMMITMENTS_PER_BLOCK))
+}
+
+func (li KZGProofs) HashTreeProof(spec *Spec, hFn tree.HashFn, index tree.Gindex) []Root {
+	length := uint64(len(li))
+	return hFn.ComplexListHTP(func(i uint64) tree.HTP {
+		if i < length {
+			return &li[i]
+		}
+		return nil
+	}, length, uint64(spec.MAX_BLOB_COMMITMENTS_PER_BLOCK), index)
 }
 
 func KZGProofsType(spec *Spec) *ComplexListTypeDef {

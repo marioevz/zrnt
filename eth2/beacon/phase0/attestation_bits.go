@@ -40,6 +40,10 @@ func (li AttestationBits) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) commo
 	return hFn.BitListHTR(li, uint64(spec.MAX_VALIDATORS_PER_COMMITTEE))
 }
 
+func (li AttestationBits) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	return hFn.BitListHTP(li, uint64(spec.MAX_VALIDATORS_PER_COMMITTEE), index)
+}
+
 func (cb AttestationBits) MarshalText() ([]byte, error) {
 	return conv.BytesMarshalText(cb[:])
 }

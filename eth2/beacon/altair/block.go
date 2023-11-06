@@ -48,6 +48,10 @@ func (b *SignedBeaconBlock) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) com
 	return hFn.HashTreeRoot(spec.Wrap(&b.Message), b.Signature)
 }
 
+func (b *SignedBeaconBlock) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	return hFn.HashTreeProof(index, spec.Wrap(&b.Message), b.Signature)
+}
+
 func (block *SignedBeaconBlock) SignedHeader(spec *common.Spec) *common.SignedBeaconBlockHeader {
 	return &common.SignedBeaconBlockHeader{
 		Message:   *block.Message.Header(spec),
@@ -81,6 +85,10 @@ func (a *BeaconBlock) FixedLength(*common.Spec) uint64 {
 
 func (b *BeaconBlock) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) common.Root {
 	return hFn.HashTreeRoot(b.Slot, b.ProposerIndex, b.ParentRoot, b.StateRoot, spec.Wrap(&b.Body))
+}
+
+func (b *BeaconBlock) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	return hFn.HashTreeProof(index, b.Slot, b.ProposerIndex, b.ParentRoot, b.StateRoot, spec.Wrap(&b.Body))
 }
 
 func BeaconBlockType(spec *common.Spec) *ContainerTypeDef {
@@ -160,6 +168,17 @@ func (a *BeaconBlockBody) FixedLength(*common.Spec) uint64 {
 
 func (b *BeaconBlockBody) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) common.Root {
 	return hFn.HashTreeRoot(
+		b.RandaoReveal, &b.Eth1Data,
+		b.Graffiti, spec.Wrap(&b.ProposerSlashings),
+		spec.Wrap(&b.AttesterSlashings), spec.Wrap(&b.Attestations),
+		spec.Wrap(&b.Deposits), spec.Wrap(&b.VoluntaryExits),
+		spec.Wrap(&b.SyncAggregate),
+	)
+}
+
+func (b *BeaconBlockBody) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	return hFn.HashTreeProof(
+		index,
 		b.RandaoReveal, &b.Eth1Data,
 		b.Graffiti, spec.Wrap(&b.ProposerSlashings),
 		spec.Wrap(&b.AttesterSlashings), spec.Wrap(&b.Attestations),

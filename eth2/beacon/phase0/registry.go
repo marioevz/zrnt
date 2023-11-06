@@ -75,6 +75,16 @@ func (li ValidatorRegistry) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) com
 	}, length, uint64(spec.VALIDATOR_REGISTRY_LIMIT))
 }
 
+func (li ValidatorRegistry) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	length := uint64(len(li))
+	return hFn.ComplexListHTP(func(i uint64) tree.HTP {
+		if i < length {
+			return li[i]
+		}
+		return nil
+	}, length, uint64(spec.VALIDATOR_REGISTRY_LIMIT), index)
+}
+
 func ValidatorsRegistryType(spec *common.Spec) ListTypeDef {
 	return ComplexListType(ValidatorType, uint64(spec.VALIDATOR_REGISTRY_LIMIT))
 }

@@ -52,6 +52,10 @@ func (b *BeaconBlockHeader) HashTreeRoot(hFn tree.HashFn) Root {
 	return hFn.HashTreeRoot(b.Slot, b.ProposerIndex, b.ParentRoot, b.StateRoot, b.BodyRoot)
 }
 
+func (b *BeaconBlockHeader) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []Root {
+	return hFn.HashTreeProof(index, b.Slot, b.ProposerIndex, b.ParentRoot, b.StateRoot, b.BodyRoot)
+}
+
 type SignedBeaconBlockHeader struct {
 	Message   BeaconBlockHeader `json:"message" yaml:"message"`
 	Signature BLSSignature      `json:"signature" yaml:"signature"`
@@ -75,6 +79,10 @@ func (b *SignedBeaconBlockHeader) FixedLength() uint64 {
 
 func (s *SignedBeaconBlockHeader) HashTreeRoot(hFn tree.HashFn) Root {
 	return hFn.HashTreeRoot(&s.Message, s.Signature)
+}
+
+func (s *SignedBeaconBlockHeader) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []Root {
+	return hFn.HashTreeProof(index, &s.Message, s.Signature)
 }
 
 var SignedBeaconBlockHeaderType = ContainerType("SignedBeaconBlockHeader", []FieldDef{
