@@ -59,6 +59,36 @@ func (e BlobIndex) String() string {
 	return Uint64View(e).String()
 }
 
+// Eth1 deposit ordering
+type BlobIdentifier struct {
+	BlockRoot common.Root `json:"block_root" yaml:"block_root"`
+	Index     BlobIndex   `json:"index" yaml:"index"`
+}
+
+func (b *BlobIdentifier) Deserialize(dr *codec.DecodingReader) error {
+	return dr.Container(&b.BlockRoot, &b.Index)
+}
+
+func (b BlobIdentifier) Serialize(w *codec.EncodingWriter) error {
+	return w.Container(&b.BlockRoot, &b.Index)
+}
+
+func (BlobIdentifier) ByteLength() uint64 {
+	return 40
+}
+
+func (BlobIdentifier) FixedLength() uint64 {
+	return 40
+}
+
+func (b BlobIdentifier) HashTreeRoot(hFn tree.HashFn) tree.Root {
+	return hFn(b.BlockRoot, b.Index.HashTreeRoot(hFn))
+}
+
+func (b BlobIdentifier) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []tree.Root {
+	return hFn.HashTreeProof(index, &b.BlockRoot, &b.Index)
+}
+
 type Blob []byte
 
 func BlobSize(spec *common.Spec) uint64 {
