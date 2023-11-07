@@ -14,6 +14,7 @@ import (
 )
 
 const BYTES_PER_FIELD_ELEMENT = 32
+const DENEB_KZG_COMMITMENT_GINDEX = 221184
 
 // Eth1 deposit ordering
 type BlobIndex Uint64View
@@ -445,26 +446,8 @@ func (b *BlobSidecar) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tr
 }
 
 func (b *BlobSidecar) IncludeProof(spec *common.Spec, hFn tree.HashFn, beaconBlockBody BeaconBlockBody) error {
-	bodyGindex, err := tree.ToGindex64(_blob_kzg_commitments, tree.CoverDepth(_beacon_block_body_length))
-	if err != nil {
-		return err
-	}
-	bodyProof := beaconBlockBody.HashTreeProof(spec, hFn, bodyGindex)
-	if err != nil {
-		return err
-	}
-	if !bytes.Equal(bodyProof[0][:], b.SignedBlockHeader.Message.BodyRoot[:]) {
-		return fmt.Errorf("invalid body root")
-	}
-	kzgCommitmentGindex, err := tree.ToGindex64(uint64(b.Index), tree.CoverDepth(uint64(spec.MAX_BLOB_COMMITMENTS_PER_BLOCK)))
-	if err != nil {
-		return err
-	}
-	kzgCommitmentProof := beaconBlockBody.BlobKZGCommitments.HashTreeProof(spec, hFn, kzgCommitmentGindex)
-	if err != nil {
-		return err
-	}
-	b.KZGCommitmentInclusionProof = append(bodyProof[1:], kzgCommitmentProof[1:]...)
+	gindex := tree.Gindex64(DENEB_KZG_COMMITMENT_GINDEX + uint64(b.Index))
+	b.KZGCommitmentInclusionProof = beaconBlockBody.HashTreeProof(spec, hFn, gindex)
 	if len(b.KZGCommitmentInclusionProof) != int(spec.KZG_COMMITMENT_INCLUSION_PROOF_DEPTH) {
 		return fmt.Errorf("invalid KZG commitment inclusion proof length: %d", len(b.KZGCommitmentInclusionProof))
 	}
@@ -472,32 +455,13 @@ func (b *BlobSidecar) IncludeProof(spec *common.Spec, hFn tree.HashFn, beaconBlo
 }
 
 func (b *BlobSidecar) VerifyProof(spec *common.Spec, hFn tree.HashFn, beaconBlockBody BeaconBlockBody) error {
-	bodyGindex, err := tree.ToGindex64(_blob_kzg_commitments, tree.CoverDepth(_beacon_block_body_length))
-	if err != nil {
-		return err
-	}
-	bodyProof := beaconBlockBody.HashTreeProof(spec, hFn, bodyGindex)
-	if err != nil {
-		return err
-	}
-	if !bytes.Equal(bodyProof[0][:], b.SignedBlockHeader.Message.BodyRoot[:]) {
-		return fmt.Errorf("invalid body root")
-	}
-	kzgCommitmentGindex, err := tree.ToGindex64(uint64(b.Index), tree.CoverDepth(uint64(spec.MAX_BLOB_COMMITMENTS_PER_BLOCK)))
-	if err != nil {
-		return err
-	}
-	kzgCommitmentProof := beaconBlockBody.BlobKZGCommitments.HashTreeProof(spec, hFn, kzgCommitmentGindex)
-	if err != nil {
-		return err
-	}
-	if len(b.KZGCommitmentInclusionProof) != int(spec.KZG_COMMITMENT_INCLUSION_PROOF_DEPTH) {
-		return fmt.Errorf("invalid KZG commitment inclusion proof length: %d", len(b.KZGCommitmentInclusionProof))
-	}
-	for i := 0; i < len(b.KZGCommitmentInclusionProof); i++ {
-		if !bytes.Equal(b.KZGCommitmentInclusionProof[i][:], kzgCommitmentProof[i][:]) {
-			return fmt.Errorf("invalid KZG commitment inclusion proof")
-		}
+	var (
+		leaf       = b.KZGCommitment.HashTreeRoot(hFn)
+		root       = b.SignedBlockHeader.Message.BodyRoot
+		leafGindex = tree.Gindex64(DENEB_KZG_COMMITMENT_GINDEX + uint64(b.Index))
+	)
+	if !tree.VerifyProof(hFn, b.KZGCommitmentInclusionProof, leafGindex, leaf, root) {
+		return fmt.Errorf("invalid KZG commitment inclusion proof")
 	}
 	return nil
 }
