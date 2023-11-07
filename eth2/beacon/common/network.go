@@ -133,6 +133,10 @@ func (p SyncnetBits) HashTreeRoot(_ tree.HashFn) (out Root) {
 	return
 }
 
+func (p SyncnetBits) HashTreeProof(_ tree.HashFn, _ tree.Gindex) []Root {
+	return nil
+}
+
 func (p SyncnetBits) MarshalText() ([]byte, error) {
 	return []byte("0x" + hex.EncodeToString(p[:])), nil
 }
@@ -175,6 +179,10 @@ func (SeqNr) FixedLength() uint64 {
 
 func (i SeqNr) HashTreeRoot(hFn tree.HashFn) Root {
 	return Uint64View(i).HashTreeRoot(hFn)
+}
+
+func (i SeqNr) HashTreeProof(_ tree.HashFn, _ tree.Gindex) []Root {
+	return nil
 }
 
 func (i SeqNr) MarshalJSON() ([]byte, error) {
@@ -293,6 +301,10 @@ func (d *MetaData) HashTreeRoot(hFn tree.HashFn) Root {
 	return hFn.HashTreeRoot(&d.SeqNumber, &d.Attnets, &d.Syncnets)
 }
 
+func (d *MetaData) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []Root {
+	return hFn.HashTreeProof(index, &d.SeqNumber, &d.Attnets, &d.Syncnets)
+}
+
 func (m *MetaData) String() string {
 	return fmt.Sprintf("MetaData(seq: %d, attnet bits: %08b, syncnet bits: %08b)", m.SeqNumber, m.Attnets, m.Syncnets)
 }
@@ -337,6 +349,10 @@ func (d *Status) HashTreeRoot(hFn tree.HashFn) Root {
 	return hFn.HashTreeRoot(&d.ForkDigest, &d.FinalizedRoot, &d.FinalizedEpoch, &d.HeadRoot, &d.HeadSlot)
 }
 
+func (d *Status) HashTreeProof(hFn tree.HashFn, index tree.Gindex) []Root {
+	return hFn.HashTreeProof(index, &d.ForkDigest, &d.FinalizedRoot, &d.FinalizedEpoch, &d.HeadRoot, &d.HeadSlot)
+}
+
 func (s *Status) String() string {
 	return fmt.Sprintf("Status(fork_digest: %s, finalized_root: %s, finalized_epoch: %d, head_root: %s, head_slot: %d)",
 		s.ForkDigest.String(), s.FinalizedRoot.String(), s.FinalizedEpoch, s.HeadRoot.String(), s.HeadSlot)
@@ -364,6 +380,10 @@ func (i Goodbye) HashTreeRoot(hFn tree.HashFn) Root {
 	return Uint64View(i).HashTreeRoot(hFn)
 }
 
+func (i Goodbye) HashTreeProof(_ tree.HashFn, _ tree.Gindex) []Root {
+	return nil
+}
+
 func (i Goodbye) MarshalJSON() ([]byte, error) {
 	return Uint64View(i).MarshalJSON()
 }
@@ -373,5 +393,43 @@ func (i *Goodbye) UnmarshalJSON(b []byte) error {
 }
 
 func (i Goodbye) String() string {
+	return Uint64View(i).String()
+}
+
+type PingData Uint64View
+
+func (i *PingData) Deserialize(dr *codec.DecodingReader) error {
+	return (*Uint64View)(i).Deserialize(dr)
+}
+
+func (i PingData) Serialize(w *codec.EncodingWriter) error {
+	return w.WriteUint64(uint64(i))
+}
+
+func (PingData) ByteLength() uint64 {
+	return 8
+}
+
+func (PingData) FixedLength() uint64 {
+	return 8
+}
+
+func (i PingData) HashTreeRoot(hFn tree.HashFn) Root {
+	return Uint64View(i).HashTreeRoot(hFn)
+}
+
+func (i PingData) HashTreeProof(_ tree.HashFn, _ tree.Gindex) []Root {
+	return nil
+}
+
+func (i PingData) MarshalJSON() ([]byte, error) {
+	return Uint64View(i).MarshalJSON()
+}
+
+func (i *PingData) UnmarshalJSON(b []byte) error {
+	return ((*Uint64View)(i)).UnmarshalJSON(b)
+}
+
+func (i PingData) String() string {
 	return Uint64View(i).String()
 }
