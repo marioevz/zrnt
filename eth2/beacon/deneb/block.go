@@ -615,3 +615,63 @@ func (b *SignedBlindedBeaconBlock) HashTreeRoot(spec *common.Spec, hFn tree.Hash
 func (b *SignedBlindedBeaconBlock) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
 	return hFn.HashTreeProof(index, spec.Wrap(&b.Message), b.Signature)
 }
+
+type BlockContents struct {
+	Block     *BeaconBlock     `json:"block" yaml:"block"`
+	KZGProofs common.KZGProofs `json:"kzg_proofs" yaml:"kzg_proofs"`
+	Blobs     Blobs            `json:"blobs" yaml:"blobs"`
+}
+
+func (b *BlockContents) Deserialize(spec *common.Spec, dr *codec.DecodingReader) error {
+	return dr.Container(spec.Wrap(b.Block), spec.Wrap(&b.KZGProofs), spec.Wrap(&b.Blobs))
+}
+
+func (b *BlockContents) Serialize(spec *common.Spec, w *codec.EncodingWriter) error {
+	return w.Container(spec.Wrap(b.Block), spec.Wrap(&b.KZGProofs), spec.Wrap(&b.Blobs))
+}
+
+func (b *BlockContents) ByteLength(spec *common.Spec) uint64 {
+	return codec.ContainerLength(spec.Wrap(b.Block), spec.Wrap(&b.KZGProofs), spec.Wrap(&b.Blobs))
+}
+
+func (b *BlockContents) FixedLength(*common.Spec) uint64 {
+	return 0
+}
+
+func (b *BlockContents) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) common.Root {
+	return hFn.HashTreeRoot(spec.Wrap(b.Block), spec.Wrap(&b.KZGProofs), spec.Wrap(&b.Blobs))
+}
+
+func (b *BlockContents) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	return hFn.HashTreeProof(index, spec.Wrap(b.Block), spec.Wrap(&b.KZGProofs), spec.Wrap(&b.Blobs))
+}
+
+type SignedBlockContents struct {
+	SignedBlock *SignedBeaconBlock `json:"signed_block" yaml:"signed_block"`
+	KZGProofs   common.KZGProofs   `json:"kzg_proofs" yaml:"kzg_proofs"`
+	Blobs       Blobs              `json:"blobs" yaml:"blobs"`
+}
+
+func (b *SignedBlockContents) Deserialize(spec *common.Spec, dr *codec.DecodingReader) error {
+	return dr.Container(spec.Wrap(b.SignedBlock), spec.Wrap(&b.KZGProofs), spec.Wrap(&b.Blobs))
+}
+
+func (b *SignedBlockContents) Serialize(spec *common.Spec, w *codec.EncodingWriter) error {
+	return w.Container(spec.Wrap(b.SignedBlock), spec.Wrap(&b.KZGProofs), spec.Wrap(&b.Blobs))
+}
+
+func (b *SignedBlockContents) ByteLength(spec *common.Spec) uint64 {
+	return codec.ContainerLength(spec.Wrap(b.SignedBlock), spec.Wrap(&b.KZGProofs), spec.Wrap(&b.Blobs))
+}
+
+func (b *SignedBlockContents) FixedLength(*common.Spec) uint64 {
+	return 0
+}
+
+func (b *SignedBlockContents) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) common.Root {
+	return hFn.HashTreeRoot(spec.Wrap(b.SignedBlock), spec.Wrap(&b.KZGProofs), spec.Wrap(&b.Blobs))
+}
+
+func (b *SignedBlockContents) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
+	return hFn.HashTreeProof(index, spec.Wrap(b.SignedBlock), spec.Wrap(&b.KZGProofs), spec.Wrap(&b.Blobs))
+}
