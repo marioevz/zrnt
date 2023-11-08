@@ -454,13 +454,13 @@ func (b *BlobSidecar) IncludeProof(spec *common.Spec, hFn tree.HashFn, beaconBlo
 	return nil
 }
 
-func (b *BlobSidecar) VerifyProof(spec *common.Spec, hFn tree.HashFn, beaconBlockBody BeaconBlockBody) error {
+func (b *BlobSidecar) VerifyProof(hFn tree.HashFn) error {
 	var (
 		leaf       = b.KZGCommitment.HashTreeRoot(hFn)
 		root       = b.SignedBlockHeader.Message.BodyRoot
 		leafGindex = tree.Gindex64(DENEB_KZG_COMMITMENT_GINDEX + uint64(b.Index))
 	)
-	if !tree.VerifyProof(hFn, b.KZGCommitmentInclusionProof, leafGindex, leaf, root) {
+	if !tree.VerifyProof(hFn, b.KZGCommitmentInclusionProof, leafGindex, root, leaf) {
 		return fmt.Errorf("invalid KZG commitment inclusion proof")
 	}
 	return nil
