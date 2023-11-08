@@ -675,3 +675,31 @@ func (b *SignedBlockContents) HashTreeRoot(spec *common.Spec, hFn tree.HashFn) c
 func (b *SignedBlockContents) HashTreeProof(spec *common.Spec, hFn tree.HashFn, index tree.Gindex) []common.Root {
 	return hFn.HashTreeProof(index, spec.Wrap(b.SignedBlock), spec.Wrap(&b.KZGProofs), spec.Wrap(&b.Blobs))
 }
+
+func (b *SignedBlockContents) GenerateSidecars(spec *common.Spec, hFn tree.HashFn) ([]*BlobSidecar, error) {
+	if len(b.Blobs) == 0 {
+		return []*BlobSidecar{}, nil
+	}
+	if len(b.Blobs) != len(b.KZGProofs) {
+		return nil, fmt.Errorf("blobs and proofs must be the same length")
+	}
+	if len(b.Blobs) != len(b.SignedBlock.Message.Body.BlobKZGCommitments) {
+		return nil, fmt.Errorf("blobs and commitments must be the same length")
+	}
+	sidecars := make([]*BlobSidecar, len(b.Blobs))
+	for i := range b.Blobs {
+		sidecar := BlobSidecar{
+			Index:             BlobIndex(i),
+			KZGProof:          b.KZGProofs[i],
+			KZGCommitment:     b.SignedBlock.Message.Body.BlobKZGCommitments[i],
+			SignedBlockHeader: *b.SignedBlock.SignedHeader(spec),
+		}
+		sidecar.Blob = make(Blob, BlobSize(spec))
+		copy(sidecar.Blob, b.Blobs[i])
+		if err := sidecar.IncludeProof(spec, hFn, b.SignedBlock.Message.Body); err != nil {
+			return nil, err
+		}
+		sidecars[i] = &sidecar
+	}
+	return sidecars, nil
+}
