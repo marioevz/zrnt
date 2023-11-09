@@ -9,6 +9,7 @@ require (
 	github.com/protolambda/bls12-381-util v0.0.0-20210720105258-a772f2aac13e
 	github.com/protolambda/messagediff v1.4.0
 	github.com/protolambda/ztyp v0.2.2
+	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 )
 
@@ -16,3 +17,5 @@ require (
 	github.com/holiman/uint256 v1.2.0 // indirect
 	golang.org/x/sys v0.0.0-20201101102859-da207088b7d1 // indirect
 )
+
+replace github.com/protolambda/ztyp => github.com/marioevz/ztyp v0.0.0-20231106221254-dd6f24f13fd9
